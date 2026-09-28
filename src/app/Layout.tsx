@@ -44,7 +44,7 @@ function NavItems({ onNavigate }: { onNavigate?: () => void }) {
 function Brand() {
   return (
     <div className="flex items-center gap-3 px-2">
-      <img src="/favicon.svg" alt="" className="size-9" />
+      <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" className="size-9" />
       <div className="leading-tight">
         <p className="font-bold">AI Engineer</p>
         <p className="text-xs text-slate-500 dark:text-slate-400">Journey · 90 days</p>

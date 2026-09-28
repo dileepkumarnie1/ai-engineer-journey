@@ -52,4 +52,6 @@ src/
 
 ## Deploy
 
-Ready for **Azure Static Web Apps** (`public/staticwebapp.config.json` includes SPA fallback and security headers). CI runs lint, type-check, tests and build on every push (`.github/workflows/ci.yml`).
+**Live:** https://dileepkumarnie1.github.io/ai-engineer-journey/
+
+Every push to `main` builds and deploys to **GitHub Pages** (`.github/workflows/deploy.yml`, with `BASE_PATH=/ai-engineer-journey/` and a `404.html` SPA fallback). Also ready for **Azure Static Web Apps** (`public/staticwebapp.config.json` includes SPA fallback and security headers). CI runs lint, type-check, tests and build on every push (`.github/workflows/ci.yml`).
