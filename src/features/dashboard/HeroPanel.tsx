@@ -1,9 +1,12 @@
+import { Play } from 'lucide-react';
 import { motion } from 'motion/react';
+import { Link } from 'react-router';
 import { ActivityRings } from '@/components/ActivityRings';
 import { CountUp } from '@/components/CountUp';
 import type { Journey } from '@/hooks/useJourney';
 import { diffDays, formatShort } from '@/lib/dates';
 import { greeting, levelFor } from '@/lib/gamification';
+import type { ResumeTarget } from '@/lib/resume';
 import { rise } from './motion';
 
 const RINGS = [
@@ -12,7 +15,7 @@ const RINGS = [
   { key: 'ready', label: 'Job ready', from: '#34d399', to: '#a3e635' },
 ] as const;
 
-export function HeroPanel({ j, xp }: { j: Journey; xp: number }) {
+export function HeroPanel({ j, xp, resume }: { j: Journey; xp: number; resume: ResumeTarget | null }) {
   const { settings } = j;
   const lvl = levelFor(xp);
   const beforeStart = j.day < 1;
@@ -67,6 +70,28 @@ export function HeroPanel({ j, xp }: { j: Journey; xp: number }) {
             <span className="rounded-full bg-white/15 px-3 py-1 backdrop-blur">⏱ {settings.minutesPerDay} min/day · 6 + 1</span>
             <span className="rounded-full bg-white/15 px-3 py-1 backdrop-blur">🎯 Job-ready by day 120</span>
           </div>
+
+          {resume && (
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.35, type: 'spring', stiffness: 160, damping: 16 }}
+              className="mt-6 flex flex-wrap items-center gap-4"
+            >
+              <Link
+                to={`/module/${resume.module.id}${resume.hash}`}
+                className="animate-glow-white group relative inline-flex items-center gap-3 rounded-2xl bg-white px-6 py-4 text-lg font-extrabold text-violet-700 shadow-2xl shadow-black/20 transition hover:scale-[1.03] focus-visible:outline-white"
+              >
+                <span className="grid size-9 place-items-center rounded-full bg-gradient-to-br from-violet-600 to-cyan-500 text-white">
+                  <Play className="size-4 translate-x-px fill-white" />
+                </span>
+                {resume.isNewUser ? 'Start learning' : resume.mode === 'continue' ? 'Continue learning' : 'Resume learning'}
+              </Link>
+              <p className="max-w-xs text-sm text-white/85">
+                {resume.isNewUser ? 'New here? One click opens today\'s lesson.' : resume.mode === 'continue' ? `Next up: ${resume.lessonLabel}` : resume.module.title}
+              </p>
+            </motion.div>
+          )}
 
           {/* Level + XP */}
           <div className="mt-6 flex max-w-xl items-center gap-4 rounded-2xl bg-black/15 p-4 ring-1 ring-white/15 backdrop-blur-md">

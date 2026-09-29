@@ -12,9 +12,10 @@ interface Props {
   onToggle?: () => void;
   modules?: LearningModule[];
   progress?: number;
+  recommended?: boolean;
 }
 
-export function CourseCard({ course, selected, onToggle, modules, progress }: Props) {
+export function CourseCard({ course, selected, onToggle, modules, progress, recommended }: Props) {
   const score = engagementScore(course);
   const fmt = formatMeta[course.format];
 
@@ -23,9 +24,15 @@ export function CourseCard({ course, selected, onToggle, modules, progress }: Pr
       className={cn(
         'glass flex flex-col overflow-hidden p-0 transition hover:-translate-y-0.5 hover:shadow-xl',
         selected && 'ring-2 ring-violet-500',
+        recommended && !selected && 'ring-2 ring-amber-400',
       )}
     >
       <div className="relative aspect-[16/8] overflow-hidden">
+        {recommended && (
+          <span className="absolute bottom-2 left-2 z-10 rounded-full bg-amber-400 px-2.5 py-1 text-[11px] font-bold text-slate-900 shadow">
+            ⭐ Recommended start
+          </span>
+        )}
         {course.youtubeId ? (
           <img src={ytThumb(course.youtubeId)} alt="" loading="lazy" className="size-full object-cover" />
         ) : (

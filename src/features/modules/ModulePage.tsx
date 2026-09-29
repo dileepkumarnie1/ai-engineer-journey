@@ -1,7 +1,7 @@
 import { ArrowLeft, ArrowRight, Check, CircleDashed, ExternalLink as ExternalIcon, Play, RotateCcw } from 'lucide-react';
 import { motion } from 'motion/react';
-import { useState } from 'react';
-import { Link, useParams } from 'react-router';
+import { useEffect, useState } from 'react';
+import { Link, useLocation, useParams } from 'react-router';
 import { useTimer } from '@/app/timer';
 import { buttonStyles } from '@/components/buttonStyles';
 import { CourseCard } from '@/components/CourseCard';
@@ -32,6 +32,14 @@ export default function ModulePage() {
   const j = useJourney();
   const timer = useTimer();
   const [sort, setSort] = useState<CourseSort>('engagement');
+  const { hash } = useLocation();
+
+  useEffect(() => {
+    if (!hash) return;
+    // Wait a frame so the section exists before scrolling to it.
+    const t = window.setTimeout(() => document.getElementById(hash.slice(1))?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
+    return () => window.clearTimeout(t);
+  }, [hash, moduleId]);
 
   if (!module || !phase) {
     return (
@@ -132,7 +140,7 @@ export default function ModulePage() {
       <section aria-labelledby="pick">
         <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h2 id="pick" className="text-lg font-semibold">🎯 Pick your learning</h2>
+            <h2 id="pick" className="scroll-mt-24 text-lg font-semibold">🎯 Pick your learning</h2>
             <p className="text-sm text-slate-500">Free unless marked Paid. Ranked by engagement (interactive + visual + hands-on + popular). Add one or more to your plan.</p>
           </div>
           <div className="flex gap-1 rounded-xl bg-slate-200/60 p-1 dark:bg-white/5" role="tablist" aria-label="Sort courses">
@@ -150,11 +158,21 @@ export default function ModulePage() {
             ))}
           </div>
         </div>
+        {selected.length === 0 && (
+          <div className="mb-4 flex items-center gap-3 rounded-2xl border-2 border-dashed border-violet-400/60 bg-violet-500/10 p-4 text-sm">
+            <span className="text-2xl" aria-hidden>👇</span>
+            <p>
+              <span className="font-bold">Step 1:</span> tap <span className="font-semibold">“Add to my plan”</span> on a course — the ⭐ one is our pick.{' '}
+              <span className="font-bold">Step 2:</span> your lesson checklist appears below; press <span className="font-semibold">Start focus session</span> and learn.
+            </p>
+          </div>
+        )}
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {sortCourses(module.courses, sort).map((c) => (
+          {sortCourses(module.courses, sort).map((c, i) => (
             <CourseCard
               key={c.id}
               course={c}
+              recommended={sort === 'engagement' && i === 0}
               selected={selectedIds.includes(c.id)}
               progress={courseCompletion(c, j.cp)}
               onToggle={() => toggleCourseSelection(module.id, c.id)}
@@ -164,7 +182,7 @@ export default function ModulePage() {
       </section>
 
       {/* My plan */}
-      <Card>
+      <Card id="my-plan" className="scroll-mt-24">
         <h2 className="mb-1 text-lg font-semibold">📋 My plan for this module</h2>
         {selected.length === 0 ? (
           <div className="mt-3 flex items-center gap-3 rounded-xl border border-dashed border-slate-300 p-4 text-sm text-slate-500 dark:border-white/15">
@@ -175,6 +193,7 @@ export default function ModulePage() {
             {selected.map((c) => {
               const lessons = getLessons(c);
               const done = new Set(j.cp.get(c.id)?.lessonsDone ?? []);
+              const nextIdx = lessons.findIndex((_, i) => !done.has(i));
               return (
                 <div key={c.id} className="grid gap-4 lg:grid-cols-5">
                   {c.youtubeId && (
@@ -193,14 +212,20 @@ export default function ModulePage() {
                     <ul className="mt-3 grid gap-2 sm:grid-cols-2">
                       {lessons.map((l, i) => (
                         <li key={l}>
-                          <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 p-2.5 text-sm hover:bg-slate-50 dark:border-white/10 dark:hover:bg-white/5">
+                          <label
+                            className={cn(
+                              'flex cursor-pointer items-center gap-3 rounded-xl border p-2.5 text-sm hover:bg-slate-50 dark:hover:bg-white/5',
+                              i === nextIdx ? 'border-violet-500 bg-violet-500/10 ring-2 ring-violet-500/30' : 'border-slate-200 dark:border-white/10',
+                            )}
+                          >
                             <input
                               type="checkbox"
                               checked={done.has(i)}
                               onChange={() => toggleLesson(c.id, i)}
                               className="size-4 accent-emerald-500"
                             />
-                            <span className={cn(done.has(i) && 'text-slate-400 line-through')}>{l}</span>
+                            <span className={cn('flex-1', done.has(i) && 'text-slate-400 line-through')}>{l}</span>
+                            {i === nextIdx && <span className="rounded-full bg-violet-500 px-2 py-0.5 text-[10px] font-bold text-white">▶ NEXT</span>}
                           </label>
                         </li>
                       ))}
@@ -233,7 +258,7 @@ export default function ModulePage() {
       </div>
 
       {/* Completion + nav */}
-      <Card className="flex flex-wrap items-center justify-between gap-4">
+      <Card id="complete" className="flex scroll-mt-24 flex-wrap items-center justify-between gap-4">
         {status === 'done' ? (
           <div className="flex items-center gap-3">
             <span className="grid size-10 place-items-center rounded-full bg-emerald-500 text-white"><Check className="size-5" /></span>

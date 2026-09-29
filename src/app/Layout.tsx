@@ -1,7 +1,7 @@
 import { Menu, Pause, Play, Settings as SettingsIcon, X } from 'lucide-react';
 import { MotionConfig } from 'motion/react';
 import { useEffect, useState } from 'react';
-import { NavLink, Outlet, ScrollRestoration } from 'react-router';
+import { Link, NavLink, Outlet, ScrollRestoration } from 'react-router';
 import { Icon } from '@/components/ui';
 import { useSettings } from '@/db/hooks';
 import { cn } from '@/lib/cn';
@@ -41,15 +41,20 @@ function NavItems({ onNavigate }: { onNavigate?: () => void }) {
   );
 }
 
-function Brand() {
+function Brand({ onNavigate }: { onNavigate?: () => void }) {
   return (
-    <div className="flex items-center gap-3 px-2">
-      <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" className="size-9" />
+    <Link
+      to="/"
+      onClick={onNavigate}
+      aria-label="AI Engineer Journey — go to dashboard"
+      className="flex items-center gap-3 rounded-xl px-2 py-1 transition hover:bg-slate-200/60 dark:hover:bg-white/5"
+    >
+      <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" className="size-9 transition hover:rotate-6" />
       <div className="leading-tight">
         <p className="font-bold">AI Engineer</p>
         <p className="text-xs text-slate-500 dark:text-slate-400">Journey · 90 days</p>
       </div>
-    </div>
+    </Link>
   );
 }
 
@@ -130,7 +135,7 @@ export function Layout() {
           <button type="button" className="absolute inset-0 bg-black/50" aria-label="Close menu" onClick={() => setOpen(false)} />
           <div className="absolute inset-y-0 right-0 flex w-72 flex-col gap-6 bg-white p-4 dark:bg-slate-900">
             <div className="flex items-center justify-between">
-              <Brand />
+              <Brand onNavigate={() => setOpen(false)} />
               <button type="button" onClick={() => setOpen(false)} className="rounded-lg p-2" aria-label="Close menu">
                 <X className="size-5" />
               </button>

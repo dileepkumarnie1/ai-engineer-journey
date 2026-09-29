@@ -1,11 +1,15 @@
 import { motion } from 'motion/react';
+import { useMemo } from 'react';
 import { Link } from 'react-router';
 import { Heatmap } from '@/components/Heatmap';
+import { allModules } from '@/content';
 import { useJourney } from '@/hooks/useJourney';
 import { computeXp, type BadgeInput } from '@/lib/gamification';
+import { getResumeTarget } from '@/lib/resume';
 import { HeroPanel } from './HeroPanel';
 import { JourneyTimeline } from './JourneyTimeline';
 import { rise, stagger } from './motion';
+import { ResumeCard } from './ResumeCard';
 import { StatTiles } from './StatTiles';
 import { TodayMission } from './TodayMission';
 import { Achievements, ConceptCard, UpNext, WeekBars } from './Widgets';
@@ -29,10 +33,13 @@ export default function DashboardPage() {
     milestonesDone: j.milestonesDone,
     capstoneDone: j.capstoneDone,
   };
+  const resume = useMemo(() => getResumeTarget(allModules, j.mp, j.cp, j.logs), [j.mp, j.cp, j.logs]);
 
   return (
     <motion.div variants={stagger} initial="hidden" animate="show" className="space-y-6">
-      <HeroPanel j={j} xp={xp} />
+      <HeroPanel j={j} xp={xp} resume={resume} />
+
+      <ResumeCard target={resume} />
 
       <div className="grid gap-6 xl:grid-cols-12">
         <div className="min-w-0 xl:col-span-8">
