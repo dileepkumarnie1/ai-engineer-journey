@@ -5,7 +5,9 @@ const s = { startDate: '2026-09-28', restDay: 0 };
 
 describe('gamification', () => {
   it('computes XP from all activity types', () => {
-    expect(computeXp({ minutes: 90, lessons: 2, modulesDone: 1, milestonesDone: 1, careerDone: 2, reviews: 4 })).toBe(90 + 20 + 150 + 100 + 50 + 20);
+    expect(computeXp({ minutes: 90, lessons: 2, modulesDone: 1, milestonesDone: 1, careerDone: 2, reviews: 4, quests: 3, bosses: 1, explained: 2, builds: 1 })).toBe(
+      90 + 20 + 150 + 100 + 50 + 20 + 60 + 200 + 50 + 50,
+    );
   });
 
   it('maps XP to levels with progress to the next one', () => {
@@ -32,7 +34,7 @@ describe('gamification', () => {
   });
 
   it('unlocks badge tiers from progress', () => {
-    const none = { logsCount: 0, totalMinutes: 0, bestStreak: 0, modulesDone: 0, phasesDone: 0, perfectQuizzes: 0, milestonesDone: 0, capstoneDone: false, reviews: 0, freezesUsed: 0 };
+    const none = { logsCount: 0, totalMinutes: 0, bestStreak: 0, modulesDone: 0, phasesDone: 0, perfectQuizzes: 0, milestonesDone: 0, capstoneDone: false, reviews: 0, freezesUsed: 0, questsDone: 0, bossesPassed: 0 };
     expect(earnedBadgeKeys(none)).toEqual([]);
     const some = { ...none, logsCount: 1, bestStreak: 7, totalMinutes: 600 };
     expect(earnedBadgeKeys(some)).toEqual(['first-session:1', 'streak:1', 'streak:2', 'hours:1']);
@@ -41,5 +43,6 @@ describe('gamification', () => {
     expect(tierName(streak, 2)).toBe('Silver');
     expect(tierName(BADGES[0]!, 1)).toBeUndefined();
     expect(earnedBadgeKeys({ ...none, reviews: 50, freezesUsed: 1 })).toEqual(['recall:1', 'freeze-saved:1']);
+    expect(earnedBadgeKeys({ ...none, questsDone: 25, bossesPassed: 1 })).toEqual(['quests:1', 'quests:2', 'boss:1']);
   });
 });

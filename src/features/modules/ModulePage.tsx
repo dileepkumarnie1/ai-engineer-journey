@@ -1,8 +1,7 @@
-import { ArrowLeft, ArrowRight, Check, CircleDashed, ExternalLink as ExternalIcon, Play, RotateCcw } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, CircleDashed, ExternalLink as ExternalIcon, RotateCcw } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router';
-import { useTimer } from '@/app/timer';
 import { buttonStyles } from '@/components/buttonStyles';
 import { CourseCard } from '@/components/CourseCard';
 import { FlowDiagram } from '@/components/FlowDiagram';
@@ -18,6 +17,7 @@ import { testOutArea } from '@/lib/onboarding';
 import { courseCompletion, getLessons, moduleCompletion } from '@/lib/progress';
 import { MASTERY, masteryCheck } from '@/lib/quiz';
 import { sortCourses, type CourseSort } from '@/lib/scoring';
+import { BuildCard, ExplainCard, LoopStepper, PredictCard } from './Loop';
 import { Quiz } from './Quiz';
 import { Reflection } from './Reflection';
 
@@ -32,7 +32,6 @@ export default function ModulePage() {
   const module = getModule(moduleId);
   const phase = getPhaseOfModule(moduleId);
   const j = useJourney();
-  const timer = useTimer();
   const [sort, setSort] = useState<CourseSort>('engagement');
   const { hash } = useLocation();
 
@@ -65,6 +64,7 @@ export default function ModulePage() {
   const next = allModules[idx + 1];
   const mastery = masteryCheck(progress);
   const fastTrack = module.kind === 'learn' && status !== 'done' ? testOutArea(j.settings.experience, phase.id) : undefined;
+  const bossReady = j.bossUnlocked(phase.id) && !j.bosses.get(phase.id)?.passedAt;
 
   return (
     <div className="space-y-6">
@@ -115,6 +115,10 @@ export default function ModulePage() {
           <a href="#quiz" className={buttonStyles('outline', 'sm')}>Test out now</a>
         </div>
       )}
+
+      <LoopStepper progress={progress} learned={completion >= 0.9} />
+
+      <PredictCard key={`predict-${module.id}`} module={module} />
 
       {/* In pictures */}
       <Card>
@@ -253,19 +257,10 @@ export default function ModulePage() {
         )}
       </Card>
 
-      {/* Build */}
-      <Card className="flex flex-wrap items-center gap-4">
-        <div className="grid size-12 place-items-center rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 text-white">
-          <Icon name="Hammer" className="size-6" />
-        </div>
-        <div className="flex-1">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">30-minute build</p>
-          <p className="font-medium">{module.build}</p>
-        </div>
-        <Button variant="outline" onClick={() => timer.start(module.id)} disabled={timer.running}>
-          <Play className="size-4" /> Start focus session
-        </Button>
-      </Card>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <ExplainCard module={module} />
+        <BuildCard module={module} />
+      </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Quiz key={module.id} module={module} best={progress?.quizScore} />
@@ -281,6 +276,11 @@ export default function ModulePage() {
             <Button variant="ghost" size="sm" onClick={() => setModuleStatus(module.id, 'in-progress')}>
               <RotateCcw className="size-4" /> Reopen
             </Button>
+            {bossReady && (
+              <Link to={`/boss/${phase.id}`} className={buttonStyles('primary', 'sm')}>
+                ⚔️ Phase boss unlocked
+              </Link>
+            )}
           </div>
         ) : (
           <div className="space-y-2">

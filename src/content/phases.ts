@@ -26,6 +26,8 @@ export const phases: Phase[] = [
         ],
         bridge: 'You already validate pipelines end-to-end. AI engineering = pipelines where one step is an LLM.',
         build: "Write your 1-line pitch: 'Data quality engineer who builds reliable AI systems.' Save it in Notes.",
+        explain: 'Explain to a fellow tester what an AI Engineer does day to day, and how it differs from an ML Engineer.',
+        checks: ['1-line pitch written and saved in Notes', 'Listed 3 testing skills that transfer to AI engineering', 'Picked 2 target job titles to aim for'],
         courses: [c.baraaRoadmap, c.babbarRoadmap, c.karpathySoftware, m.ngOpportunities, c.roadmapSh],
         quiz: [
           {
@@ -73,6 +75,8 @@ export const phases: Phase[] = [
         ],
         bridge: 'Same discipline as ADF linked services: connections, secrets, environments.',
         build: "Create repo 'ai-engineer-journey' and run a 'hello LLM' script against Gemini and Ollama.",
+        explain: 'Explain how you keep API keys safe across local dev, GitHub and production.',
+        checks: ['Repo ai-engineer-journey created on GitHub', '.env holds your keys and is listed in .gitignore', "'hello LLM' runs against both Gemini and Ollama"],
         courses: [c.uv, c.ollama, c.aiStudio, c.githubModels],
         quiz: [
           {
@@ -120,6 +124,8 @@ export const phases: Phase[] = [
         ],
         bridge: 'Classes are reusable test frameworks; decorators are pre/post-validation hooks.',
         build: 'Refactor an old validation script into a class with a @retry decorator and a row-streaming generator.',
+        explain: 'Explain generators and decorators using a data-validation example.',
+        checks: ['Validation logic wrapped in a class', '@retry decorator retries a failing call', 'Generator streams rows one at a time'],
         tip: 'Pierian bootcamp is ~22 h: do OOP, errors, decorators and generators now; the rest alongside later phases.',
         courses: [
           m.pierianBootcamp,
@@ -170,6 +176,8 @@ export const phases: Phase[] = [
         ],
         bridge: 'Pydantic validation ≈ the data-type and constraint checks you have run for 10 years.',
         build: 'Model one STTM row (source col, target col, rule) as a Pydantic class and test it with pytest.',
+        explain: 'Explain why typed data models matter even more when an LLM produces the data.',
+        checks: ['STTM row modelled as a typed Pydantic class', 'Invalid input raises a ValidationError', 'pytest suite passes, including a parametrized test'],
         courses: [c.pydantic, c.pytest, m.pixegamiPydantic, m.pixegamiPytest, m.coreyUnittest, c.kagglePandas, m.keithPandas],
         quiz: [
           {
@@ -207,6 +215,8 @@ export const phases: Phase[] = [
         ],
         bridge: 'Like ADF Web activities + retry policies, but in code you fully control.',
         build: 'Write an async script that sends 10 prompts to Gemini concurrently with retry + timeout.',
+        explain: 'Explain retries with exponential backoff, and when async actually helps.',
+        checks: ['10 prompts sent concurrently with asyncio', 'Retry with backoff handles 429s and timeouts', 'Every request has a timeout set'],
         courses: [c.realPythonAsync, c.httpx, m.arjanAsyncio, m.mcodingAsync],
         quiz: [
           {
@@ -244,6 +254,8 @@ export const phases: Phase[] = [
         ],
         bridge: 'Your DQ automation tools become services other teams can call.',
         build: 'Expose POST /validate that accepts a table profile and returns rule violations.',
+        explain: 'Explain, step by step, what happens when a bad request hits a FastAPI endpoint.',
+        checks: ['POST /validate returns rule violations as JSON', 'Request and response use Pydantic models', 'Endpoint tried out in Swagger UI at /docs'],
         courses: [c.fastapi, m.fccFastapiBeginners, c.fccFastapi],
         quiz: [
           {
@@ -291,6 +303,8 @@ export const phases: Phase[] = [
         ],
         bridge: 'Precision / recall = false alarms vs missed defects in your validation reports.',
         build: "Kaggle notebook: train a model that flags 'bad' rows in a data-quality dataset.",
+        explain: 'Explain overfitting, and precision vs recall, using defect detection as the example.',
+        checks: ['Data split into train and test sets', 'Model trained and scored on the test set', 'Precision and recall reported and interpreted'],
         courses: [c.googleMlcc, c.kaggleIntroMl, m.statquestIntroMl, m.statquestBiasVariance, m.fccMlEverybody, c.r2d3, c.statquest, m.ngMlSpecialization],
         quiz: [
           {
@@ -333,6 +347,8 @@ export const phases: Phase[] = [
         ],
         bridge: 'Backprop is root-cause analysis: trace the error back to the step that caused it.',
         build: 'Make the spiral dataset converge in TensorFlow Playground. Screenshot it for your notes.',
+        explain: 'Explain how a neural network learns, without using any maths.',
+        checks: ['Spiral dataset converges in TensorFlow Playground', 'Screenshot saved to your notes', 'Noted which setting (layers, learning rate) made the difference'],
         courses: [
           c.nn3b1b,
           c.gd3b1b,
@@ -382,6 +398,8 @@ export const phases: Phase[] = [
         ],
         bridge: "Embeddings are fuzzy join keys: match 'cust_nm' to 'customer name' by meaning.",
         build: 'Embed 20 column names from past projects and list the most similar pairs.',
+        explain: 'Explain embeddings and cosine similarity to someone who knows SQL joins.',
+        checks: ['20 column names embedded', 'Pairwise cosine similarity computed', 'Top similar pairs listed and sanity-checked'],
         courses: [c.karpathyTokenizer, c.tiktokenizer, m.statquestWord2vec, c.word2vec, c.hfLlmCourse],
         quiz: [
           {
@@ -429,6 +447,8 @@ export const phases: Phase[] = [
         ],
         bridge: 'Hallucination = silent data corruption. You already know how to hunt those.',
         build: 'Ask 3 LLMs the same tricky SQL question; log the differences in a table.',
+        explain: 'Explain next-token prediction, context windows and why hallucinations happen.',
+        checks: ['Same tricky SQL question asked to 3 LLMs', 'Differences logged in a comparison table', 'At least one hallucination or error flagged'],
         courses: [
           c.llmBrief3b1b,
           m.ibmHowLlmsWork,
@@ -483,6 +503,8 @@ export const phases: Phase[] = [
         ],
         bridge: 'A prompt is a test spec: preconditions, steps, expected result.',
         build: 'Write a prompt that turns a mapping rule into 3 SQL test cases. Iterate 5 versions with a changelog.',
+        explain: 'Explain what makes a prompt reliable, as if you were reviewing a test case.',
+        checks: ['Prompt turns a mapping rule into 3 SQL tests', '5 versions iterated with a changelog', 'Final prompt includes examples and an output format'],
         courses: [c.dlaiPromptEng, c.anthropicPrompt, m.anthropicPromptDeepDive, m.fccPromptEng, c.promptingGuide, c.learnPrompting],
         quiz: [
           {
@@ -525,6 +547,8 @@ export const phases: Phase[] = [
         ],
         bridge: 'Schema-validate LLM output exactly like you validate a file landing in ADLS.',
         build: 'Return a list[TestCase] Pydantic model via Instructor or native structured output.',
+        explain: 'Explain tool calling, and why your code (not the model) runs the tool.',
+        checks: ['LLM returns list[TestCase] as validated JSON', 'Invalid output is caught and retried', 'Temperature set low for deterministic output'],
         courses: [c.geminiDocs, c.openaiStructured, c.instructor, c.dlaiFunctionsTools, m.ebbelaarAgents],
         quiz: [
           {
@@ -562,6 +586,8 @@ export const phases: Phase[] = [
         ],
         bridge: 'This is the seed of your capstone — later it becomes the Planner agent.',
         build: 'Ship a CLI: gen_tests.py mapping.csv → tests/*.sql, plus a README with a GIF.',
+        explain: 'Walk through your CLI end to end: input, prompt, validation, output.',
+        checks: ['gen_tests.py mapping.csv writes tests/*.sql', 'Output validated with Pydantic before writing', 'README with a demo GIF pushed to GitHub'],
         courses: [c.duckdb, c.awesomeLlmApps],
         quiz: [
           {
@@ -603,6 +629,8 @@ export const phases: Phase[] = [
         ],
         bridge: 'An index is an index: think partitions + WHERE, but on meaning.',
         build: "Load your data dictionary into Chroma; ask 'where is customer email stored?'",
+        explain: 'Explain how a vector database finds similar text, and where metadata filters help.',
+        checks: ['Data dictionary loaded into Chroma', "Query answers 'where is customer email stored?'", 'Tried a metadata filter on the search'],
         courses: [c.dlaiVectorDb, m.fireshipVectorDb, m.fccVectorEmbeddings, c.pineconeLearn, c.chroma, c.azureAiSearch],
         quiz: [
           {
@@ -640,6 +668,8 @@ export const phases: Phase[] = [
         ],
         bridge: 'RAG ingestion is ETL: extract docs, transform to chunks, load to a vector store.',
         build: 'Notebook RAG over 5 Azure Data Factory docs pages, answers with citations.',
+        explain: 'Explain the RAG pipeline as if it were an ETL job, step by step.',
+        checks: ['5 ADF docs pages loaded and chunked', 'Answers include citations to source chunks', 'Tested a question the docs cannot answer'],
         courses: [m.ibmRag, c.fccRag, m.pixegamiRag, c.dlaiChatData, m.brandonLangchain, m.llmZoomcamp, c.courseraRag, c.llamaIndex],
         quiz: [
           {
@@ -677,6 +707,8 @@ export const phases: Phase[] = [
         ],
         bridge: "Golden datasets are expected-results tables. You're the expert here.",
         build: 'Create 15 golden Q&A pairs; score your RAG with Ragas before and after re-ranking.',
+        explain: 'Explain how you would measure a RAG system, then improve it.',
+        checks: ['15 golden Q&A pairs written', 'Ragas scores recorded before re-ranking', 'Scores compared after adding re-ranking'],
         courses: [c.dlaiAdvancedRag, c.dlaiAdvancedRetrieval, m.kamradtSplitting, m.jerryLiuRag, c.ragas, c.dlaiAgenticRag],
         quiz: [
           {
@@ -714,6 +746,8 @@ export const phases: Phase[] = [
         ],
         bridge: 'This becomes the knowledge layer of your capstone.',
         build: "Ship repo 'data-docs-rag' with Streamlit UI, 15-question eval and a results table.",
+        explain: 'Explain your chatbot architecture and how you know it gives good answers.',
+        checks: ['Streamlit chat UI shows source citations', '15-question eval with a results table', "Repo 'data-docs-rag' is public with a GIF demo"],
         courses: [c.streamlit, c.chroma, m.pixegamiRag, c.ragas],
         quiz: [
           {
@@ -755,6 +789,8 @@ export const phases: Phase[] = [
         ],
         bridge: 'Agents are orchestration pipelines where the LLM picks the next activity — ADF with a brain.',
         build: 'Build a tool-calling agent with two tools: get_schema and run_sql (read-only).',
+        explain: 'Explain the ReAct loop, and when an agent beats a fixed workflow.',
+        checks: ['Agent calls get_schema and run_sql tools', 'The SQL tool is read-only', 'Agent has a max-steps limit'],
         courses: [c.hfAgents, c.msAgentsBeginners, m.ibmAgents, m.barryZhangAgents, c.anthropicAgents, m.ebbelaarAgents, c.ngAgenticTalk],
         quiz: [
           {
@@ -792,6 +828,8 @@ export const phases: Phase[] = [
         ],
         bridge: 'Reflection = peer review of test cases. Planning = test strategy before execution.',
         build: 'Add a reflection step: the agent reviews its generated SQL tests and fixes issues.',
+        explain: 'Explain the four agentic patterns, with a data-testing example for each.',
+        checks: ['Reflection step reviews generated SQL tests', 'At least one issue found and fixed by reflection', 'Before / after outputs saved for comparison'],
         courses: [c.ngAgenticAi, c.kaggleAgents, m.harrisonAgents, c.openaiAgentsSdk],
         quiz: [
           {
@@ -829,6 +867,8 @@ export const phases: Phase[] = [
         ],
         bridge: "You've read pipeline DAGs for a decade. LangGraph is a DAG (with loops) for LLMs.",
         build: 'Port your agent to LangGraph with an approval interrupt before any SQL runs.',
+        explain: 'Explain state, nodes, conditional edges and checkpoints in LangGraph.',
+        checks: ['Agent ported to a LangGraph graph', 'Interrupt pauses before any SQL runs', 'Run resumed after human approval'],
         courses: [c.langchainAcademy, c.dlaiLanggraph, m.fccLanggraph, c.langgraphDocs],
         quiz: [
           {
@@ -866,6 +906,8 @@ export const phases: Phase[] = [
         ],
         bridge: 'Just like your QA team: lead plans, testers execute, reviewer signs off.',
         build: "Diagram your capstone's 4 agents and their tools in the repo README.",
+        explain: 'Explain the supervisor pattern, and the cost of adding more agents.',
+        checks: ['Diagram of the 4 capstone agents in the README', 'Each agent has a single job and listed tools', 'Noted where a single agent would do instead'],
         courses: [c.dlaiCrewai, c.msAgentsBeginners, m.langgraphMultiAgent],
         quiz: [
           {
@@ -897,6 +939,8 @@ export const phases: Phase[] = [
         ],
         bridge: 'An MCP server is like a linked service + stored-procedure layer for agents.',
         build: 'Write an MCP server exposing get_schema and run_readonly_sql over DuckDB.',
+        explain: 'Explain MCP to a data engineer, and why least privilege matters.',
+        checks: ['MCP server exposes get_schema and run_readonly_sql', 'Server tested from an MCP client', 'Write / DDL statements are rejected'],
         courses: [c.dlaiMcp, c.hfMcp, m.maheshMcp, c.mcpDocs],
         quiz: [
           {
@@ -934,6 +978,8 @@ export const phases: Phase[] = [
         ],
         bridge: 'This IS capstone v0.1. The next phases harden, evaluate and deploy it.',
         build: 'Ship DataSentinel AI v0.1 locally on DuckDB sample data.',
+        explain: 'Walk through DataSentinel v0.1 from mapping in to report out.',
+        checks: ['Planner → SQL → Executor → Analyst flow runs', 'Read-only SQL, row limits and approval in place', 'Markdown report with pass / fail and root causes'],
         courses: [c.langgraphDocs, c.duckdb, c.mcpDocs],
         quiz: [
           {
@@ -975,6 +1021,8 @@ export const phases: Phase[] = [
         ],
         bridge: 'This is where 10 years of testing makes you stand out from other candidates.',
         build: 'Add a 10-case DeepEval suite to your agent and run it in GitHub Actions.',
+        explain: 'Explain how you would stop a prompt change from silently breaking quality.',
+        checks: ['10-case DeepEval suite written', 'Suite runs in GitHub Actions', 'Build fails when a score drops below its threshold'],
         courses: [c.dlaiTestingLlmops, c.deepeval, c.hamelEvals, m.lennyEvals, c.dlaiEvalDebug, m.llmZoomcamp],
         quiz: [
           {
@@ -1012,6 +1060,8 @@ export const phases: Phase[] = [
         ],
         bridge: 'Same as data masking and audit logging in your DWH projects.',
         build: 'Add Langfuse tracing and a prompt-injection test case to your agent.',
+        explain: 'Explain prompt injection and two defences you would put in place.',
+        checks: ['Langfuse traces show every step and its cost', 'Prompt-injection test case added', 'PII masked before it reaches the model'],
         courses: [c.owaspLlm, m.ibmPromptInjection, c.dlaiQualitySafety, c.langfuse],
         quiz: [
           {
@@ -1043,6 +1093,8 @@ export const phases: Phase[] = [
         ],
         bridge: 'Containers are like deployment groups — the same artifact across DEV, QA and PROD.',
         build: 'Dockerize your FastAPI agent service and run it with docker compose.',
+        explain: 'Explain images, containers and layer caching, using your API as the example.',
+        checks: ['Dockerfile builds the FastAPI agent image', 'docker compose runs the API with its dependencies', 'Dependencies installed before code for fast rebuilds'],
         courses: [m.fireshipDocker, m.fireshipDockerConcepts, c.nanaDocker, m.fccDocker, c.dockerGetStarted],
         quiz: [
           {
@@ -1074,6 +1126,8 @@ export const phases: Phase[] = [
         ],
         bridge: 'You know ADF, ADLS and Databricks — this is the same Azure, new services.',
         build: 'Deploy the DataSentinel API to Azure Container Apps using Azure OpenAI + AI Search.',
+        explain: 'Explain your Azure architecture and how its services authenticate without keys.',
+        checks: ['API deployed to Azure Container Apps', 'Uses Azure OpenAI and AI Search', 'Secrets in Key Vault or managed identity, none in code'],
         tip: 'Activate the Azure free account at the start of this phase — the credit is time-limited.',
         courses: [c.msGenAiBeginners, c.msLearnGenAi, m.az900, c.azureFoundry, c.azureContainerApps],
         quiz: [
@@ -1122,6 +1176,8 @@ export const phases: Phase[] = [
         ],
         bridge: 'Your domain + AI = a niche few candidates can show.',
         build: "Close every 'P7' item on the capstone board.",
+        explain: 'Explain the end-to-end flow of DataSentinel AI in under 2 minutes.',
+        checks: ['All P7 items closed on the capstone board', 'End-to-end run works on Databricks sample data', 'Guardrails, retries and cost limits in place'],
         courses: [c.databricksFree, c.langgraphDocs, c.azureContainerApps],
         quiz: [
           {
@@ -1153,6 +1209,8 @@ export const phases: Phase[] = [
         ],
         bridge: "Frame it like a QA metrics report — you've written dozens.",
         build: 'Publish an eval results table and a cost / time-saved chart in the README.',
+        explain: 'Explain your headline metrics and exactly how you measured them.',
+        checks: ['Eval results table published in the README', 'Cost per run and time saved charted', 'Method for each metric documented'],
         courses: [c.deepeval, c.hamelEvals, c.langfuse],
         quiz: [
           {
@@ -1184,6 +1242,8 @@ export const phases: Phase[] = [
         ],
         bridge: "Your story: 'I tested data platforms for 10 years; now I build AI that tests them.'",
         build: 'Publish README, demo video, blog post and LinkedIn post. Update your résumé.',
+        explain: 'Give your 60-second pitch for DataSentinel AI, out loud, then write it here.',
+        checks: ['README with diagram, quick start and metrics', '3-minute demo video published', 'Blog and LinkedIn posts live, résumé updated'],
         courses: [c.makeReadme, c.mermaid, c.demoVideo],
         quiz: [
           {
@@ -1226,6 +1286,8 @@ export const phases: Phase[] = [
         ],
         bridge: "You've reviewed data-platform designs — same muscles, new components.",
         build: 'Whiteboard 3 designs: support chatbot, doc Q&A, data-quality agent.',
+        explain: 'Explain the trade-offs between RAG, fine-tuning and agents for a support bot.',
+        checks: ['Support chatbot design whiteboarded', 'Doc Q&A design whiteboarded', 'Data-quality agent design whiteboarded'],
         courses: [c.huyenPlatform, m.jerryLiuRag, m.barryZhangAgents, c.aieBook, c.sysDesignVideo],
         quiz: [
           {
@@ -1262,6 +1324,8 @@ export const phases: Phase[] = [
         ],
         bridge: 'Training-data quality decides everything — your core expertise.',
         build: 'Fine-tune a small model to turn mapping rules into SQL; compare with prompting.',
+        explain: 'Explain LoRA, and when fine-tuning is worth it over prompting and RAG.',
+        checks: ['Dataset of mapping rule → SQL pairs built', 'Small model fine-tuned with LoRA on Colab', 'Compared against prompting on the same eval set'],
         courses: [c.dlaiFinetune, m.umarLora, m.shawFinetune, c.unsloth, m.mlabonneCourse, c.hfLlmCourse],
         quiz: [
           {
@@ -1293,6 +1357,8 @@ export const phases: Phase[] = [
         ],
         bridge: 'Later (paid, optional): Databricks GenAI Engineer Associate fits your Databricks years.',
         build: 'Earn at least 2 free credentials and add them to LinkedIn.',
+        explain: 'Explain which credentials you chose and what each proves to a recruiter.',
+        checks: ['At least 2 free credentials earned', 'Credentials added to LinkedIn', 'Listed on your résumé with dates'],
         courses: [c.msAppliedSkills, c.hfAgents, c.hfMcp],
         quiz: [
           {
@@ -1324,6 +1390,8 @@ export const phases: Phase[] = [
         ],
         bridge: "Reframe: 'I validated pipelines' → 'I build and evaluate reliable data + AI systems.'",
         build: 'Do 3 mock interviews (1 AI, 2 human). Log weak spots in the Career hub.',
+        explain: 'Tell your tester-to-AI-engineer story using the STAR structure.',
+        checks: ['1 mock interview with an AI interviewer', '2 mock interviews with humans', 'Weak spots logged in the Career hub'],
         courses: [c.interviewVideo, c.techInterviewHandbook, c.huyenPlatform],
         quiz: [
           {
@@ -1360,6 +1428,8 @@ export const phases: Phase[] = [
         ],
         bridge: "'AI Evaluation Engineer' roles are a perfect bridge job for you.",
         build: 'Apply to 5 roles per week and log each one in the tracker.',
+        explain: 'Explain your job-search strategy and which roles you are targeting, and why.',
+        checks: ['Target role list written', 'Résumé tailored to one specific job ad', '5 applications logged in the tracker this week'],
         courses: [c.baraaRoadmap, c.techInterviewHandbook],
         quiz: [
           {

@@ -1,19 +1,23 @@
 import { useMemo } from 'react';
 import { allModules, careerChecklist, corePhases, getModule, getPhaseOfModule, phases, projects } from '@/content';
 import {
+  useAllQuizAttempts,
+  useBosses,
   useCareerSet,
   useCheckins,
   useCourseProgressMap,
   useLogs,
   useMilestoneMap,
   useModuleProgressMap,
+  useQuestLog,
   useReviewCards,
   useSettings,
 } from '@/db/hooks';
-import { summarize } from '@/lib/achievements';
+import { questContext, summarize } from '@/lib/achievements';
 import { todayISO } from '@/lib/dates';
 import { weekStrip } from '@/lib/gamification';
 import { readinessScore, studyDaysDone, totalStudyDays } from '@/lib/progress';
+import { questStatus } from '@/lib/quests';
 import {
   buildPlan,
   calendarDay,
@@ -38,6 +42,9 @@ export const useJourney = () => {
   const career = useCareerSet();
   const cards = useReviewCards();
   const checkins = useCheckins();
+  const questLog = useQuestLog();
+  const bossRows = useBosses();
+  const attempts = useAllQuizAttempts();
 
   return useMemo(() => {
     const today = todayISO();
@@ -49,7 +56,19 @@ export const useJourney = () => {
     const elapsed = plannedDoneBy(today, s);
     const plannedDone = Math.min(coreTotal, toContentIndex(elapsed, coreTotal, stretch));
     const todayPlan = planForDate(plan, today, s);
-    const sum = summarize({ schedule: s, today, logs, mp, cp, milestones, careerDone: career.size, cards });
+    const bosses = new Map(bossRows.map((b) => [b.phaseId, b]));
+    const sum = summarize({
+      schedule: s,
+      today,
+      logs,
+      mp,
+      cp,
+      milestones,
+      careerDone: career.size,
+      cards,
+      questsDone: questLog.length,
+      bossesPassed: bossRows.filter((b) => b.passedAt).length,
+    });
     const { minutes, streak, badgeInput } = sum;
     const allMilestones = projects.flatMap((p) => p.milestones);
     const learning = coreDone / coreTotal;
@@ -105,6 +124,9 @@ export const useJourney = () => {
       offerReplan: shouldOfferReplan({ pace, targetDays: settings.targetDays, lowSignals: low, today, dismissedUntil: settings.replanDismissedUntil }),
       xp: sum.xp,
       badgeInput,
+      quests: questStatus(today, questContext({ today, logs, cards, attempts, checkins, mp })),
+      bosses,
+      bossUnlocked: (phaseId: string) => Boolean(phases.find((p) => p.id === phaseId)?.modules.every((m) => mp.get(m.id)?.status === 'done')),
       learning,
       projectsFrac,
       careerFrac,
@@ -119,7 +141,7 @@ export const useJourney = () => {
       cp,
       logs,
     };
-  }, [settings, mp, cp, logs, milestones, career, cards, checkins]);
+  }, [settings, mp, cp, logs, milestones, career, cards, checkins, questLog, bossRows, attempts]);
 };
 
 export type Journey = ReturnType<typeof useJourney>;

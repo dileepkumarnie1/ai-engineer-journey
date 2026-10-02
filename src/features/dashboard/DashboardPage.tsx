@@ -7,6 +7,7 @@ import { useOnboarded } from '@/db/hooks';
 import { DailyRecallCard, WeakSpotsCard } from '@/features/recall/RecallWidgets';
 import { useJourney } from '@/hooks/useJourney';
 import { getResumeTarget } from '@/lib/resume';
+import { DailyQuestsCard } from './DailyQuests';
 import { ReplanCard, SkillMapCard } from './Growth';
 import { HeroPanel } from './HeroPanel';
 import { JourneyTimeline } from './JourneyTimeline';
@@ -41,10 +42,13 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-12">
-        <motion.div variants={rise} className="min-w-0 lg:col-span-7">
+        <motion.div variants={rise} className="min-w-0 lg:col-span-4">
+          <DailyQuestsCard j={j} />
+        </motion.div>
+        <motion.div variants={rise} className="min-w-0 lg:col-span-4">
           <DailyRecallCard j={j} />
         </motion.div>
-        <motion.div variants={rise} className="min-w-0 lg:col-span-5">
+        <motion.div variants={rise} className="min-w-0 lg:col-span-4">
           <WeakSpotsCard j={j} />
         </motion.div>
       </div>

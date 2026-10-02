@@ -19,6 +19,7 @@ export const router = createBrowserRouter([
       { path: 'recall', lazy: page(() => import('@/features/recall/RecallPage')) },
       { path: 'roadmap', lazy: page(() => import('@/features/roadmap/RoadmapPage')) },
       { path: 'module/:moduleId', lazy: page(() => import('@/features/modules/ModulePage')) },
+      { path: 'boss/:phaseId', lazy: page(() => import('@/features/boss/BossPage')) },
       { path: 'courses', lazy: page(() => import('@/features/courses/CoursesPage')) },
       { path: 'tracker', lazy: page(() => import('@/features/tracker/TrackerPage')) },
       { path: 'projects', lazy: page(() => import('@/features/projects/ProjectsPage')) },

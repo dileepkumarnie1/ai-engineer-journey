@@ -70,9 +70,21 @@ export default function RoadmapPage() {
                     <p className="text-sm text-white/90">{p.goal}</p>
                   </div>
                 </div>
-                <ProgressRing value={v} size={72} stroke={8} color="#fff">
-                  <span className="text-sm font-bold">{Math.round(v * 100)}%</span>
-                </ProgressRing>
+                <div className="flex items-center gap-3">
+                  <Link
+                    to={`/boss/${p.id}`}
+                    className={cn(
+                      'rounded-xl px-3 py-2 text-sm font-semibold backdrop-blur transition hover:scale-105',
+                      j.bosses.get(p.id)?.passedAt ? 'bg-white text-slate-900' : j.bossUnlocked(p.id) ? 'animate-pulse bg-white/90 text-slate-900' : 'bg-white/15 text-white/80',
+                    )}
+                    title={j.bossUnlocked(p.id) ? 'Phase boss checkpoint' : 'Master every module in this phase to unlock'}
+                  >
+                    {j.bosses.get(p.id)?.passedAt ? '🏆 Boss defeated' : j.bossUnlocked(p.id) ? '⚔️ Face the boss' : '🔒 Boss'}
+                  </Link>
+                  <ProgressRing value={v} size={72} stroke={8} color="#fff">
+                    <span className="text-sm font-bold">{Math.round(v * 100)}%</span>
+                  </ProgressRing>
+                </div>
               </motion.div>
 
               <ol className="relative ml-6 space-y-3 border-l-2 border-dashed border-slate-300 pl-8 dark:border-white/15">

@@ -45,6 +45,7 @@ function NavItems({ onNavigate }: { onNavigate?: () => void }) {
 }
 
 function Brand({ onNavigate }: { onNavigate?: () => void }) {
+  const { targetDays } = useSettings();
   return (
     <Link
       to="/"
@@ -55,7 +56,7 @@ function Brand({ onNavigate }: { onNavigate?: () => void }) {
       <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" className="size-9 transition hover:rotate-6" />
       <div className="leading-tight">
         <p className="font-bold">AI Engineer</p>
-        <p className="text-xs text-slate-500 dark:text-slate-400">Journey · 90 days</p>
+        <p className="text-xs text-slate-500 dark:text-slate-400">Journey · {targetDays} days</p>
       </div>
     </Link>
   );

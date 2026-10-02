@@ -1,7 +1,7 @@
 import { addDays, diffDays, weekday, type ISODate } from './dates';
 import { isStudyDay, type ScheduleSettings } from './schedule';
 
-export const XP_RULES = { minute: 1, lesson: 10, module: 150, milestone: 100, career: 25, review: 5 } as const;
+export const XP_RULES = { minute: 1, lesson: 10, module: 150, milestone: 100, career: 25, review: 5, quest: 20, boss: 200, explain: 25, build: 50 } as const;
 
 export interface XpInput {
   minutes: number;
@@ -10,6 +10,10 @@ export interface XpInput {
   milestonesDone: number;
   careerDone: number;
   reviews: number;
+  quests: number;
+  bosses: number;
+  explained: number;
+  builds: number;
 }
 
 export const computeXp = (i: XpInput): number =>
@@ -18,7 +22,11 @@ export const computeXp = (i: XpInput): number =>
   i.modulesDone * XP_RULES.module +
   i.milestonesDone * XP_RULES.milestone +
   i.careerDone * XP_RULES.career +
-  i.reviews * XP_RULES.review;
+  i.reviews * XP_RULES.review +
+  i.quests * XP_RULES.quest +
+  i.bosses * XP_RULES.boss +
+  i.explained * XP_RULES.explain +
+  i.builds * XP_RULES.build;
 
 export const LEVELS = [
   { min: 0, title: 'Data Tester', emoji: '🧪' },
@@ -51,6 +59,8 @@ export interface BadgeInput {
   capstoneDone: boolean;
   reviews: number;
   freezesUsed: number;
+  questsDone: number;
+  bossesPassed: number;
 }
 
 export interface Badge {
@@ -75,6 +85,8 @@ export const BADGES: Badge[] = [
   { id: 'phase', emoji: '🏅', title: 'Phase cleared', goal: (n) => `${n} phase${n === 1 ? '' : 's'} cleared`, metric: (b) => b.phasesDone, tiers: [1, 5, 9] },
   { id: 'builder', emoji: '🛠️', title: 'Builder', goal: (n) => `${n} project milestone${n === 1 ? '' : 's'} shipped`, metric: (b) => b.milestonesDone, tiers: [1, 10, 25] },
   { id: 'recall', emoji: '🗂️', title: 'Memory palace', goal: (n) => `${n} recall reviews`, metric: (b) => b.reviews, tiers: [50, 200, 500] },
+  { id: 'quests', emoji: '🗺️', title: 'Quest hero', goal: (n) => `${n} daily quests completed`, metric: (b) => b.questsDone, tiers: [5, 25, 75] },
+  { id: 'boss', emoji: '⚔️', title: 'Boss slayer', goal: (n) => `${n} phase boss${n === 1 ? '' : 'es'} defeated`, metric: (b) => b.bossesPassed, tiers: [1, 4, 8] },
   { id: 'freeze-saved', emoji: '❄️', title: 'Saved by ice', goal: () => 'A streak freeze rescues your streak', metric: (b) => b.freezesUsed, tiers: [1] },
   { id: 'capstone', emoji: '🏆', title: 'Capstone hero', goal: () => 'Finish DataSentinel AI', metric: (b) => (b.capstoneDone ? 1 : 0), tiers: [1] },
 ];

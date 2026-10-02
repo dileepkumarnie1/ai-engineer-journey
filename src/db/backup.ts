@@ -24,7 +24,7 @@ const settingsSchema = z.object({
 
 const backupSchema = z.object({
   app: z.literal('ai-engineer-journey'),
-  version: z.union([z.literal(1), z.literal(2), z.literal(3)]),
+  version: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)]),
   exportedAt: isoDateTime,
   data: z.object({
     settings: z.array(settingsSchema).max(1),
@@ -38,6 +38,13 @@ const backupSchema = z.object({
         notes: text(5000),
         startedAt: isoDateTime.optional(),
         completedAt: isoDateTime.optional(),
+        predicted: z.boolean().optional(),
+        explanation: text(1500).optional(),
+        explainCovered: z.array(z.number().int().min(0).max(10)).max(10).optional(),
+        explainedAt: isoDate.optional(),
+        buildDone: z.array(z.number().int().min(0).max(10)).max(10).optional(),
+        buildAt: isoDate.optional(),
+        proofUrl: z.url({ protocol: /^https?$/ }).max(500).optional(),
       }),
     ),
     courseProgress: z.array(
@@ -96,6 +103,10 @@ const backupSchema = z.object({
     checkins: z
       .array(z.object({ date: isoDate, energy: z.union([z.literal(1), z.literal(2), z.literal(3)]) }))
       .default([]),
+    questLog: z.array(z.object({ key: text(80), date: isoDate, questId: text(40) })).default([]),
+    bosses: z
+      .array(z.object({ phaseId: text(20), best: z.number().int().min(0).max(100), passedAt: isoDate.optional() }))
+      .default([]),
   }),
 });
 
@@ -107,7 +118,7 @@ export const exportBackup = async (): Promise<Backup> => {
   const entries = await Promise.all(TABLES.map(async (t) => [t, await db.table(t).toArray()] as const));
   return {
     app: 'ai-engineer-journey',
-    version: 3,
+    version: 4,
     exportedAt: new Date().toISOString(),
     data: Object.fromEntries(entries) as Backup['data'],
   };

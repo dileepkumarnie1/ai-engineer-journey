@@ -3,18 +3,15 @@ import { AnimatePresence, motion } from 'motion/react';
 import { useEffect, useRef, useState } from 'react';
 import { BadgeIcon } from '@/components/BadgeIcon';
 import { Button } from '@/components/ui';
-import { saveSettings } from '@/db/actions';
+import { recordQuests, saveSettings } from '@/db/actions';
 import { db } from '@/db/db';
-import { summarize } from '@/lib/achievements';
+import { questContext, summarize } from '@/lib/achievements';
 import { todayISO } from '@/lib/dates';
-import { BADGES, earnedBadgeKeys, levelFor, LEVELS, tierName } from '@/lib/gamification';
+import { BADGES, earnedBadgeKeys, levelFor, LEVELS, tierName, XP_RULES } from '@/lib/gamification';
+import { questStatus } from '@/lib/quests';
 import { stretchFor } from '@/lib/schedule';
 
-interface Toast {
-  key: string;
-  badgeId: string;
-  tier: number;
-}
+type Toast = { key: string } & ({ kind: 'badge'; badgeId: string; tier: number } | { kind: 'quest'; emoji: string; title: string });
 
 const BURST = Array.from({ length: 14 }, (_, i) => ({
   emoji: ['✨', '🎉', '⭐', '💜'][i % 4],
@@ -25,7 +22,7 @@ const BURST = Array.from({ length: 14 }, (_, i) => ({
 /** Reads everything in one live query so we only compare once all data is loaded. */
 const useAchievementSnapshot = () =>
   useLiveQuery(async () => {
-    const [settings, logs, mpRows, cpRows, ms, career, cards] = await Promise.all([
+    const [settings, logs, mpRows, cpRows, ms, career, cards, checkins, attempts, questLog, bosses] = await Promise.all([
       db.settings.get('app'),
       db.logs.toArray(),
       db.moduleProgress.toArray(),
@@ -33,19 +30,31 @@ const useAchievementSnapshot = () =>
       db.milestones.toArray(),
       db.career.toArray(),
       db.reviewCards.toArray(),
+      db.checkins.toArray(),
+      db.quizAttempts.toArray(),
+      db.questLog.toArray(),
+      db.bosses.toArray(),
     ]);
     if (!settings?.onboarded) return null;
+    const today = todayISO();
+    const mp = new Map(mpRows.map((r) => [r.moduleId, r]));
     const { xp, badgeInput } = summarize({
       schedule: { startDate: settings.startDate, restDay: settings.restDay, stretch: stretchFor(settings.targetDays) },
-      today: todayISO(),
+      today,
       logs,
-      mp: new Map(mpRows.map((r) => [r.moduleId, r])),
+      mp,
       cp: new Map(cpRows.map((r) => [r.courseId, r])),
       milestones: new Map(ms.map((r) => [r.id, r.status])),
       careerDone: career.filter((c) => c.done).length,
       cards,
+      questsDone: questLog.length,
+      bossesPassed: bosses.filter((b) => b.passedAt).length,
     });
-    return { settings, earned: earnedBadgeKeys(badgeInput), level: levelFor(xp).level };
+    const logged = new Set(questLog.map((q) => q.key));
+    const newQuests = questStatus(today, questContext({ today, logs, cards, attempts, checkins, mp }))
+      .filter((q) => q.done && !logged.has(`${today}:${q.quest.id}`))
+      .map((q) => q.quest);
+    return { settings, today, newQuests, earned: earnedBadgeKeys(badgeInput), level: levelFor(xp).level };
   }, []);
 
 export function Celebrations() {
@@ -57,7 +66,14 @@ export function Celebrations() {
 
   useEffect(() => {
     if (!snap) return;
-    const { settings, earned, level } = snap;
+    const { settings, earned, level, today } = snap;
+    const quests = snap.newQuests.filter((q) => !queued.current.has(`quest:${today}:${q.id}`));
+    if (quests.length) {
+      for (const q of quests) queued.current.add(`quest:${today}:${q.id}`);
+      void recordQuests(today, quests.map((q) => q.id)).then(() =>
+        setToasts((t) => [...t, ...quests.map((q) => ({ key: `quest:${today}:${q.id}`, kind: 'quest' as const, emoji: q.emoji, title: q.title }))]),
+      );
+    }
     // First run (or a restored older backup): remember the current state silently.
     if (!settings.seenBadges || settings.seenLevel === undefined) {
       void saveSettings({ seenBadges: earned, seenLevel: level });
@@ -75,7 +91,7 @@ export function Celebrations() {
         ...t,
         ...fresh.map((key) => {
           const [badgeId = '', tier = '1'] = key.split(':');
-          return { key, badgeId, tier: Number(tier) };
+          return { key, kind: 'badge' as const, badgeId, tier: Number(tier) };
         }),
       ]);
       if (up) setLevelUp(level);
@@ -102,6 +118,23 @@ export function Celebrations() {
       <div className="pointer-events-none fixed bottom-4 left-4 z-50 flex flex-col gap-2 lg:left-64" aria-live="polite">
         <AnimatePresence>
           {toasts.slice(0, 3).map((t) => {
+            if (t.kind === 'quest') {
+              return (
+                <motion.div
+                  key={t.key}
+                  initial={{ opacity: 0, x: -40, scale: 0.9 }}
+                  animate={{ opacity: 1, x: 0, scale: 1 }}
+                  exit={{ opacity: 0, x: -40 }}
+                  className="pointer-events-auto flex items-center gap-3 rounded-2xl bg-white p-3 pr-5 shadow-2xl ring-1 ring-emerald-300 dark:bg-slate-900 dark:ring-emerald-500/40"
+                >
+                  <span className="grid size-14 place-items-center rounded-2xl bg-emerald-500/15 text-2xl">{t.emoji}</span>
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-wider text-emerald-500">Quest complete · +{XP_RULES.quest} XP</p>
+                    <p className="font-bold">{t.title}</p>
+                  </div>
+                </motion.div>
+              );
+            }
             const badge = BADGES.find((b) => b.id === t.badgeId);
             if (!badge) return null;
             const name = tierName(badge, t.tier);

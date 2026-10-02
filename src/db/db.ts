@@ -32,6 +32,18 @@ export interface Checkin {
   energy: Energy;
 }
 
+export interface QuestDone {
+  key: string;
+  date: ISODate;
+  questId: string;
+}
+
+export interface BossResult {
+  phaseId: string;
+  best: number;
+  passedAt?: ISODate;
+}
+
 export interface ModuleProgress {
   moduleId: string;
   status: ModuleStatus;
@@ -41,6 +53,15 @@ export interface ModuleProgress {
   notes: string;
   startedAt?: string;
   completedAt?: string;
+  /** Whether the pre-learning prediction was right. */
+  predicted?: boolean;
+  explanation?: string;
+  /** Key-idea card indexes the learner says their explanation covered. */
+  explainCovered?: number[];
+  explainedAt?: ISODate;
+  buildDone?: number[];
+  buildAt?: ISODate;
+  proofUrl?: string;
 }
 
 export interface CourseProgress {
@@ -125,6 +146,8 @@ export class JourneyDB extends Dexie {
   quizAttempts!: EntityTable<QuizAttempt, 'id'>;
   reviewCards!: EntityTable<ReviewCard, 'id'>;
   checkins!: EntityTable<Checkin, 'date'>;
+  questLog!: EntityTable<QuestDone, 'key'>;
+  bosses!: EntityTable<BossResult, 'phaseId'>;
 
   constructor(name = 'ai-engineer-journey') {
     super(name);
@@ -141,7 +164,9 @@ export class JourneyDB extends Dexie {
     this.version(1).stores(v1);
     const v2 = { ...v1, quizAttempts: '++id, moduleId', reviewCards: 'id, due' };
     this.version(2).stores(v2);
-    this.version(3).stores({ ...v2, checkins: 'date' });
+    const v3 = { ...v2, checkins: 'date' };
+    this.version(3).stores(v3);
+    this.version(4).stores({ ...v3, questLog: 'key, date', bosses: 'phaseId' });
   }
 }
 
@@ -159,4 +184,6 @@ export const TABLES = [
   'quizAttempts',
   'reviewCards',
   'checkins',
+  'questLog',
+  'bosses',
 ] as const;

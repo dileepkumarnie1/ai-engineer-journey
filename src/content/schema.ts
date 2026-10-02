@@ -46,6 +46,10 @@ export const moduleSchema = z.object({
     .length(3),
   bridge: z.string().max(140),
   build: z.string().max(170),
+  /** "Explain it back" prompt: forces recall in your own words. */
+  explain: z.string().min(20).max(140),
+  /** Acceptance criteria for the build task. */
+  checks: z.array(z.string().min(5).max(100)).min(2).max(4),
   tip: z.string().max(140).optional(),
   courses: z.array(courseSchema).min(1),
   quiz: z

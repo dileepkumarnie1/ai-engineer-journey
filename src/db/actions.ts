@@ -81,6 +81,52 @@ export const reviewRecallCard = async (id: string, correct: boolean, today: ISOD
 
 export const saveCheckin = (energy: Energy, date: ISODate = todayISO()) => db.checkins.put({ date, energy });
 
+const toggleIn = (list: number[] | undefined, i: number) => {
+  const set = new Set(list ?? []);
+  if (set.has(i)) set.delete(i);
+  else set.add(i);
+  return [...set].sort((a, b) => a - b);
+};
+
+export const setPrediction = (moduleId: string, correct: boolean) =>
+  updateModule(moduleId, (p) => (p.predicted === undefined ? { ...p, predicted: correct } : p));
+
+export const setExplanation = (moduleId: string, text: string) =>
+  updateModule(moduleId, (p) => ({ ...p, explanation: text.slice(0, 1500), explainedAt: todayISO() }));
+
+export const toggleExplainCovered = (moduleId: string, idx: number) =>
+  updateModule(moduleId, (p) => ({ ...p, explainCovered: toggleIn(p.explainCovered, idx) }));
+
+export const toggleBuildCheck = (moduleId: string, idx: number) =>
+  updateModule(moduleId, (p) => ({ ...p, buildDone: toggleIn(p.buildDone, idx), buildAt: todayISO() }));
+
+/** Only http(s) links are stored, so a proof link can never become a javascript: URL. */
+export const isSafeUrl = (url: string) => {
+  try {
+    const u = new URL(url);
+    return (u.protocol === 'https:' || u.protocol === 'http:') && url.length <= 500;
+  } catch {
+    return false;
+  }
+};
+
+export const setProofUrl = async (moduleId: string, url: string) => {
+  const trimmed = url.trim();
+  if (trimmed && !isSafeUrl(trimmed)) return false;
+  await updateModule(moduleId, (p) => ({ ...p, proofUrl: trimmed || undefined }));
+  return true;
+};
+
+export const recordQuests = (date: ISODate, questIds: string[]) =>
+  db.questLog.bulkPut(questIds.map((questId) => ({ key: `${date}:${questId}`, date, questId })));
+
+export const recordBoss = async (phaseId: string, score: number, passed: boolean, today: ISODate = todayISO()) => {
+  await db.transaction('rw', db.bosses, async () => {
+    const prev = await db.bosses.get(phaseId);
+    await db.bosses.put({ phaseId, best: Math.max(prev?.best ?? 0, score), passedAt: prev?.passedAt ?? (passed ? today : undefined) });
+  });
+};
+
 export const setConfidence = (moduleId: string, confidence: number) =>
   updateModule(moduleId, (p) => ({ ...p, confidence }));
 

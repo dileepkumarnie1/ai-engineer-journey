@@ -1,4 +1,4 @@
-import type { LearningModule } from '@/content/schema';
+import type { LearningModule, Phase } from '@/content/schema';
 import type { ModuleProgress } from '@/db/db';
 
 export type Rng = () => number;
@@ -27,6 +27,18 @@ export type Question = McqQuestion | OrderQuestion;
 export type Answer = number | string[];
 
 export const MASTERY = { quiz: 70, confidence: 3 } as const;
+
+/** Deterministic RNG (mulberry32) so a given seed always shuffles the same way. */
+export const seededRng = (seed: string): Rng => {
+  let a = 0;
+  for (let i = 0; i < seed.length; i++) a = Math.imul(a ^ seed.charCodeAt(i), 2654435761);
+  return () => {
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+};
 
 export const shuffle = <T>(items: readonly T[], rng: Rng = Math.random): T[] => {
   const a = [...items];
@@ -104,4 +116,14 @@ export const masteryCheck = (p: ModuleProgress | undefined) => {
   const quizOk = (p?.quizScore ?? -1) >= MASTERY.quiz;
   const confidenceOk = (p?.confidence ?? 0) >= MASTERY.confidence;
   return { quizOk, confidenceOk, ready: quizOk && confidenceOk };
+};
+
+export const BOSS_PASS = 80;
+export const BOSS_QUESTIONS = 8;
+
+/** Mixed exam across a whole phase: up to 8 authored questions plus one flow puzzle. */
+export const buildBossQuiz = (phase: Phase, rng: Rng = Math.random): Question[] => {
+  const pool = phase.modules.flatMap((m) => m.quiz.map((_, i) => authoredQuestion(m, i, rng)!));
+  const flowModule = phase.modules[Math.floor(rng() * phase.modules.length)]!;
+  return [...shuffle(pool, rng).slice(0, BOSS_QUESTIONS), flowQuestion(flowModule, rng)];
 };
