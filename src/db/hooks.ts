@@ -1,6 +1,6 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useMemo } from 'react';
-import { db, DEFAULT_SETTINGS, type CourseProgress, type ModuleProgress, type ReviewCard } from './db';
+import { db, DEFAULT_SETTINGS, type Checkin, type CourseProgress, type ModuleProgress, type ReviewCard } from './db';
 
 export const useSettings = () => useLiveQuery(() => db.settings.get('app'), []) ?? DEFAULT_SETTINGS;
 
@@ -36,6 +36,9 @@ export const useWatchedSet = () => {
 
 const NO_CARDS: ReviewCard[] = [];
 export const useReviewCards = () => useLiveQuery(() => db.reviewCards.toArray(), []) ?? NO_CARDS;
+
+const NO_CHECKINS: Checkin[] = [];
+export const useCheckins = () => useLiveQuery(() => db.checkins.toArray(), []) ?? NO_CHECKINS;
 
 export const useQuizAttempts = (moduleId: string) =>
   useLiveQuery(() => db.quizAttempts.where('moduleId').equals(moduleId).sortBy('at'), [moduleId]) ?? [];

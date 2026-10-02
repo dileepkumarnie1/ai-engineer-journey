@@ -87,6 +87,7 @@ export default function SettingsPage() {
               </button>
             ))}
           </div>
+          <p className="mt-1 text-xs text-slate-500">120 days spreads the same core modules over ~4 months; the job-ready sprint follows.</p>
         </fieldset>
         <fieldset>
           <legend className="mb-1 text-sm font-medium">Theme</legend>

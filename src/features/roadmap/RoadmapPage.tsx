@@ -22,7 +22,7 @@ export default function RoadmapPage() {
 
   return (
     <div>
-      <PageHeader icon="Map" title="Your roadmap" subtitle={`${j.coreTotal} study-day core plan (days 1–90) + ${j.plan.length ? j.plan.at(-1)!.endIndex - j.coreTotal : 0}-day job-ready sprint (days 91–120) · 6 study days + 1 rest day`} />
+      <PageHeader icon="Map" title="Your roadmap" subtitle={`${j.coreTotal} study-day core plan (days 1–${j.coreEndDay}) + ${j.plan.length ? j.plan.at(-1)!.endIndex - j.coreTotal : 0}-day job-ready sprint (to day ${j.finishDay}) · ${j.settings.targetDays}-day pace`} />
 
       {/* Metro-style overview */}
       <Card className="mb-8 overflow-x-auto">

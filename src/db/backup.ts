@@ -17,11 +17,14 @@ const settingsSchema = z.object({
   onboarded: z.boolean().optional(),
   goal: text(200).optional(),
   experience: z.partialRecord(z.enum(['python', 'ml', 'llm', 'rag', 'agents', 'ops']), z.union([z.literal(0), z.literal(1), z.literal(2)])).optional(),
+  seenBadges: z.array(text(60)).max(200).optional(),
+  seenLevel: z.number().int().min(1).max(20).optional(),
+  replanDismissedUntil: isoDate.optional(),
 });
 
 const backupSchema = z.object({
   app: z.literal('ai-engineer-journey'),
-  version: z.union([z.literal(1), z.literal(2)]),
+  version: z.union([z.literal(1), z.literal(2), z.literal(3)]),
   exportedAt: isoDateTime,
   data: z.object({
     settings: z.array(settingsSchema).max(1),
@@ -90,6 +93,9 @@ const backupSchema = z.object({
         }),
       )
       .default([]),
+    checkins: z
+      .array(z.object({ date: isoDate, energy: z.union([z.literal(1), z.literal(2), z.literal(3)]) }))
+      .default([]),
   }),
 });
 
@@ -101,7 +107,7 @@ export const exportBackup = async (): Promise<Backup> => {
   const entries = await Promise.all(TABLES.map(async (t) => [t, await db.table(t).toArray()] as const));
   return {
     app: 'ai-engineer-journey',
-    version: 2,
+    version: 3,
     exportedAt: new Date().toISOString(),
     data: Object.fromEntries(entries) as Backup['data'],
   };

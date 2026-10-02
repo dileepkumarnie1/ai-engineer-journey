@@ -19,6 +19,17 @@ export interface Settings {
   onboarded?: boolean;
   goal?: string;
   experience?: Partial<Record<SkillArea, ExperienceLevel>>;
+  /** Badge tiers already celebrated, as "badgeId:tier". */
+  seenBadges?: string[];
+  seenLevel?: number;
+  replanDismissedUntil?: ISODate;
+}
+
+export type Energy = 1 | 2 | 3;
+
+export interface Checkin {
+  date: ISODate;
+  energy: Energy;
 }
 
 export interface ModuleProgress {
@@ -113,6 +124,7 @@ export class JourneyDB extends Dexie {
   watched!: EntityTable<Watched, 'id'>;
   quizAttempts!: EntityTable<QuizAttempt, 'id'>;
   reviewCards!: EntityTable<ReviewCard, 'id'>;
+  checkins!: EntityTable<Checkin, 'date'>;
 
   constructor(name = 'ai-engineer-journey') {
     super(name);
@@ -127,7 +139,9 @@ export class JourneyDB extends Dexie {
       watched: 'id',
     };
     this.version(1).stores(v1);
-    this.version(2).stores({ ...v1, quizAttempts: '++id, moduleId', reviewCards: 'id, due' });
+    const v2 = { ...v1, quizAttempts: '++id, moduleId', reviewCards: 'id, due' };
+    this.version(2).stores(v2);
+    this.version(3).stores({ ...v2, checkins: 'date' });
   }
 }
 
@@ -144,4 +158,5 @@ export const TABLES = [
   'watched',
   'quizAttempts',
   'reviewCards',
+  'checkins',
 ] as const;

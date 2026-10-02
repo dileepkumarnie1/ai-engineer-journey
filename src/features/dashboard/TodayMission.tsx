@@ -1,5 +1,6 @@
 import { ArrowRight, Check, Coffee, Pause, Play } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
+import { useState } from 'react';
 import { Link } from 'react-router';
 import { fmtClock, SEGMENT_LABEL, useTimer } from '@/app/timer';
 import { buttonStyles } from '@/components/buttonStyles';
@@ -7,11 +8,69 @@ import { FlowDiagram } from '@/components/FlowDiagram';
 import { SessionPresetPicker } from '@/components/SessionPresetPicker';
 import { Icon } from '@/components/ui';
 import { getPhase } from '@/content';
+import { saveCheckin } from '@/db/actions';
+import type { Energy } from '@/db/db';
 import type { Journey } from '@/hooks/useJourney';
 import { cn } from '@/lib/cn';
 import { hues } from '@/lib/colors';
 import { formatLong } from '@/lib/dates';
+import { ENERGY } from '@/lib/wellbeing';
 import { rise } from './motion';
+
+const ENERGY_TIP: Record<Energy, { className: string; title: string; text: string }> = {
+  1: { className: 'bg-sky-500/10 text-sky-900 dark:text-sky-100', title: 'Gentle day.', text: 'A ⚡ micro session or a few recall cards keeps your streak. Skip the build if you need to.' },
+  2: { className: 'bg-violet-500/10 text-violet-900 dark:text-violet-100', title: 'Steady day.', text: 'Learn → build → reflect at your normal pace.' },
+  3: { className: 'bg-amber-500/15 text-amber-900 dark:text-amber-100', title: 'Big energy!', text: '🔥 Deep 4×25 is set. Push the build task today.' },
+};
+
+function EnergyCheckin({ j }: { j: Journey }) {
+  const timer = useTimer();
+  const [editing, setEditing] = useState(false);
+  const energy = j.todayEnergy;
+
+  const pick = async (e: Energy) => {
+    await saveCheckin(e);
+    if (!timer.running && timer.elapsedSec === 0) timer.setPreset(ENERGY[e].preset);
+    setEditing(false);
+  };
+
+  if (!energy || editing) {
+    return (
+      <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-dashed border-slate-300 p-3 dark:border-white/15" role="group" aria-label="Energy check-in">
+        <p className="mr-1 text-sm font-medium">How's your energy today?</p>
+        {([1, 2, 3] as const).map((e) => (
+          <button
+            key={e}
+            type="button"
+            aria-pressed={energy === e}
+            onClick={() => pick(e)}
+            className="rounded-xl border border-slate-200 px-3 py-1.5 text-sm font-medium transition hover:-translate-y-0.5 hover:bg-slate-100 dark:border-white/10 dark:hover:bg-white/5"
+          >
+            {ENERGY[e].emoji} {ENERGY[e].label}
+          </button>
+        ))}
+      </div>
+    );
+  }
+
+  const tip = ENERGY_TIP[energy];
+  return (
+    <div className={cn('flex flex-wrap items-center gap-x-3 gap-y-1 rounded-2xl p-3 text-sm', tip.className)}>
+      <span aria-hidden>{ENERGY[energy].emoji}</span>
+      <p className="min-w-0 flex-1">
+        <span className="font-semibold">{tip.title}</span> {tip.text}
+      </p>
+      {energy === 1 && j.recall.length > 0 && (
+        <Link to="/recall" className="font-semibold underline-offset-2 hover:underline">
+          {j.recall.length} recall cards →
+        </Link>
+      )}
+      <button type="button" onClick={() => setEditing(true)} className="text-xs opacity-70 hover:underline">
+        change
+      </button>
+    </div>
+  );
+}
 
 function Step({ done, active, emoji, label, sub }: { done: boolean; active: boolean; emoji: string; label: string; sub: string }) {
   return (
@@ -95,6 +154,8 @@ export function TodayMission({ j }: { j: Journey }) {
                 <p className="mt-1 text-slate-600 dark:text-slate-300">{module.tagline}</p>
               </div>
             </div>
+
+            <EnergyCheckin j={j} />
 
             <div className="flex flex-col gap-2 sm:flex-row">
               <Step done={learnDone} active={!learnDone} emoji="📚" label={`Learn · ${learnMin} min`} sub="Watch / read your picks" />

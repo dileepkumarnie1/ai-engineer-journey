@@ -9,6 +9,7 @@ import {
   LineChart,
   PolarAngleAxis,
   PolarGrid,
+  PolarRadiusAxis,
   Radar,
   RadarChart,
   ReferenceLine,
@@ -21,16 +22,14 @@ import { fmtClock, SEGMENT_LABEL, useTimer } from '@/app/timer';
 import { Heatmap } from '@/components/Heatmap';
 import { SessionPresetPicker } from '@/components/SessionPresetPicker';
 import { Button, Card, PageHeader, ProgressRing } from '@/components/ui';
-import { allModules, corePhases, getModule } from '@/content';
+import { allModules, getModule } from '@/content';
 import { addLog, deleteLog } from '@/db/actions';
 import { useJourney, type Journey } from '@/hooks/useJourney';
 import { cn } from '@/lib/cn';
 import { addDays, diffDays, formatShort, isISODate } from '@/lib/dates';
-import { phaseCompletion } from '@/lib/progress';
-import { studyDaysBetween } from '@/lib/schedule';
+import { studyDaysBetween, toContentIndex } from '@/lib/schedule';
 
 const MOODS = ['😫', '😕', '😐', '🙂', '🤩'];
-const WEEKS = Math.ceil(120 / 7);
 
 function ModuleSelect({ value, onChange, id }: { value?: string; onChange: (v?: string) => void; id: string }) {
   return (
@@ -187,8 +186,9 @@ function ManualLog({ today, defaultModule }: { today: string; defaultModule?: st
 function Charts({ j }: { j: Journey }) {
   const { weekly, burn, radar } = useMemo(() => {
     const s = j.schedule;
+    const weeks = Math.ceil(j.finishDay / 7);
     const target = 6 * j.settings.minutesPerDay;
-    const weekly = Array.from({ length: WEEKS }, (_, w) => {
+    const weekly = Array.from({ length: weeks }, (_, w) => {
       let min = 0;
       for (let d = 0; d < 7; d++) min += j.minutes.get(addDays(s.startDate, w * 7 + d)) ?? 0;
       return { week: `W${w + 1}`, hours: +(min / 60).toFixed(1), target: target / 60 };
@@ -196,9 +196,10 @@ function Charts({ j }: { j: Journey }) {
     const doneModules = allModules
       .map((m) => ({ m, p: j.mp.get(m.id) }))
       .filter((x) => x.p?.status === 'done' && x.p.completedAt);
-    const burn = Array.from({ length: WEEKS }, (_, w) => {
+    const burn = Array.from({ length: weeks }, (_, w) => {
       const end = addDays(s.startDate, w * 7 + 6);
-      const planned = Math.min(j.coreTotal, studyDaysBetween(s.startDate, addDays(end, 1), s));
+      const elapsed = studyDaysBetween(s.startDate, addDays(end, 1), s);
+      const planned = +Math.min(j.coreTotal, toContentIndex(elapsed, j.coreTotal, s.stretch ?? 1)).toFixed(1);
       const actual =
         diffDays(addDays(s.startDate, w * 7), j.today) >= 0
           ? doneModules
@@ -207,7 +208,7 @@ function Charts({ j }: { j: Journey }) {
           : null;
       return { week: `W${w + 1}`, planned, actual };
     });
-    const radar = corePhases.map((p) => ({ phase: p.title, value: Math.round(phaseCompletion(p, j.mp, j.cp) * 100) }));
+    const radar = j.skills.map((sk) => ({ skill: `${sk.emoji} ${sk.label}`, value: sk.score }));
     return { weekly, burn, radar };
   }, [j]);
 
@@ -246,12 +247,14 @@ function Charts({ j }: { j: Journey }) {
         </div>
       </Card>
       <Card className="lg:col-span-2">
-        <h2 className="mb-3 font-semibold">🕸 Skill radar (core phases)</h2>
+        <h2 className="mb-1 font-semibold">🕸 AI Engineer skill radar</h2>
+        <p className="mb-3 text-xs text-slate-500">Scored by proven mastery: quiz 40%, completion 40%, confidence 20%.</p>
         <div className="h-80">
           <ResponsiveContainer>
-            <RadarChart data={radar} outerRadius="75%">
+            <RadarChart data={radar} outerRadius="72%">
               <PolarGrid stroke="#94a3b855" />
-              <PolarAngleAxis dataKey="phase" tick={axis} />
+              <PolarAngleAxis dataKey="skill" tick={axis} />
+              <PolarRadiusAxis domain={[0, 100]} tick={false} axisLine={false} />
               <Radar dataKey="value" stroke="#06b6d4" fill="#06b6d4" fillOpacity={0.35} />
               <Tooltip />
             </RadarChart>

@@ -8,7 +8,9 @@ import {
   planForDate,
   plannedDoneBy,
   projectFinish,
+  stretchFor,
   studyDaysBetween,
+  toContentIndex,
 } from './schedule';
 
 const s = { startDate: '2026-09-28', restDay: 0 }; // Monday start, Sunday rest
@@ -64,5 +66,19 @@ describe('schedule', () => {
   it('supports no rest day', () => {
     const all = { startDate: '2026-09-28', restDay: null };
     expect(studyDaysBetween('2026-09-28', '2026-10-05', all)).toBe(7);
+  });
+
+  it('stretches only the core phases for the 120-day plan', () => {
+    const slow = { ...s, stretch: stretchFor(120) };
+    const plan = buildPlan(phases, slow);
+    const lastCore = plan.filter((p) => !p.buffer).at(-1)!;
+    expect(lastCore.endIndex).toBe(78);
+    expect(calendarDay(lastCore.endDate, slow)).toBeGreaterThanOrEqual(118);
+    expect(calendarDay(lastCore.endDate, slow)).toBeLessThanOrEqual(122);
+    // Day 1 is still the first module, and plan lookups stay consistent with stretched dates.
+    expect(planForDate(plan, '2026-09-28', slow)?.moduleId).toBe('p0-role');
+    for (const p of plan) expect(planForDate(plan, p.startDate, slow)?.moduleId).toBe(p.moduleId);
+    expect(toContentIndex(104, 78, 4 / 3)).toBeCloseTo(78);
+    expect(toContentIndex(110, 78, 4 / 3)).toBeCloseTo(84);
   });
 });

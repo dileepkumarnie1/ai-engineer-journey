@@ -1,4 +1,4 @@
-import { db, DEFAULT_SETTINGS, type Application, type ApplicationStatus, type MilestoneStatus, type ModuleProgress, type ModuleStatus, type Settings } from './db';
+import { db, DEFAULT_SETTINGS, type Application, type ApplicationStatus, type Energy, type MilestoneStatus, type ModuleProgress, type ModuleStatus, type Settings } from './db';
 import { todayISO, type ISODate } from '@/lib/dates';
 import { masteryCheck } from '@/lib/quiz';
 import { gradeCard, isRecallKey } from '@/lib/leitner';
@@ -78,6 +78,8 @@ export const reviewRecallCard = async (id: string, correct: boolean, today: ISOD
     await db.reviewCards.put(gradeCard(await db.reviewCards.get(id), id, correct, today));
   });
 };
+
+export const saveCheckin = (energy: Energy, date: ISODate = todayISO()) => db.checkins.put({ date, energy });
 
 export const setConfidence = (moduleId: string, confidence: number) =>
   updateModule(moduleId, (p) => ({ ...p, confidence }));

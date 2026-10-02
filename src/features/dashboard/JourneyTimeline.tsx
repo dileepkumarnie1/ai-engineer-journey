@@ -26,7 +26,7 @@ export function JourneyTimeline({ j }: { j: Journey }) {
   return (
     <motion.section variants={rise} className="glass p-6">
       <div className="mb-8 flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-lg font-bold">🛣️ Your 120-day journey</h2>
+        <h2 className="text-lg font-bold">🛣️ Your {j.finishDay}-day journey</h2>
         <div className="flex items-center gap-4 text-xs text-slate-500">
           <span className="flex items-center gap-1.5"><span className="h-3 w-0.5 bg-slate-800 dark:bg-white" /> Plan today</span>
           <span className="flex items-center gap-1.5">🚀 You</span>
@@ -38,9 +38,9 @@ export function JourneyTimeline({ j }: { j: Journey }) {
         {/* Markers */}
         <div className="absolute inset-x-0 top-0 h-full">
           <div className="absolute top-0 flex -translate-x-1/2 flex-col items-center" style={{ left: pct(j.coreTotal) }}>
-            <span className="text-sm" title="Day 90 — core plan complete">🏁</span>
+            <span className="text-sm" title={`Day ${j.coreEndDay} — core plan complete`}>🏁</span>
           </div>
-          <div className="absolute right-0 top-0 translate-x-1/2 text-sm" title="Day 120 — job-ready">🏆</div>
+          <div className="absolute right-0 top-0 translate-x-1/2 text-sm" title={`Day ${j.finishDay} — job-ready`}>🏆</div>
           <motion.div
             className="absolute top-3 bottom-8 w-0.5 -translate-x-1/2 rounded-full bg-slate-800 dark:bg-white"
             initial={{ left: '0%' }}

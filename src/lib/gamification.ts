@@ -46,27 +46,46 @@ export interface BadgeInput {
   bestStreak: number;
   modulesDone: number;
   phasesDone: number;
-  quizAce: boolean;
+  perfectQuizzes: number;
   milestonesDone: number;
   capstoneDone: boolean;
   reviews: number;
   freezesUsed: number;
 }
 
-export const BADGES: { id: string; emoji: string; title: string; hint: string; earned: (b: BadgeInput) => boolean }[] = [
-  { id: 'first-session', emoji: '🚀', title: 'Lift-off', hint: 'Log your first session', earned: (b) => b.logsCount > 0 },
-  { id: 'streak-3', emoji: '🔥', title: 'On fire', hint: '3-day streak', earned: (b) => b.bestStreak >= 3 },
-  { id: 'streak-7', emoji: '⚡', title: 'Unstoppable', hint: '7-day streak', earned: (b) => b.bestStreak >= 7 },
-  { id: 'hours-10', emoji: '⏱️', title: 'Deep worker', hint: '10 hours studied', earned: (b) => b.totalMinutes >= 600 },
-  { id: 'first-module', emoji: '🧩', title: 'First piece', hint: 'Complete a module', earned: (b) => b.modulesDone >= 1 },
-  { id: 'quiz-ace', emoji: '🎯', title: 'Quiz ace', hint: 'Score 100% on a quiz', earned: (b) => b.quizAce },
-  { id: 'phase-done', emoji: '🏅', title: 'Phase cleared', hint: 'Finish a whole phase', earned: (b) => b.phasesDone >= 1 },
-  { id: 'builder', emoji: '🛠️', title: 'Builder', hint: 'Ship a project milestone', earned: (b) => b.milestonesDone >= 1 },
-  { id: 'hours-50', emoji: '🧠', title: 'Half-century', hint: '50 hours studied', earned: (b) => b.totalMinutes >= 3000 },
-  { id: 'capstone', emoji: '🏆', title: 'Capstone hero', hint: 'Finish DataSentinel AI', earned: (b) => b.capstoneDone },
-  { id: 'recall-50', emoji: '🗂️', title: 'Memory palace', hint: '50 recall reviews', earned: (b) => b.reviews >= 50 },
-  { id: 'freeze-saved', emoji: '❄️', title: 'Saved by ice', hint: 'A streak freeze rescued your streak', earned: (b) => b.freezesUsed >= 1 },
+export interface Badge {
+  id: string;
+  emoji: string;
+  title: string;
+  /** What reaching `n` means, e.g. "7-day streak". */
+  goal: (n: number) => string;
+  metric: (b: BadgeInput) => number;
+  /** One threshold = single badge; three = bronze / silver / gold. */
+  tiers: number[];
+}
+
+export const TIER_NAMES = ['Bronze', 'Silver', 'Gold'] as const;
+
+export const BADGES: Badge[] = [
+  { id: 'first-session', emoji: '🚀', title: 'Lift-off', goal: () => 'Log your first session', metric: (b) => b.logsCount, tiers: [1] },
+  { id: 'streak', emoji: '🔥', title: 'On fire', goal: (n) => `${n}-day streak`, metric: (b) => b.bestStreak, tiers: [3, 7, 21] },
+  { id: 'hours', emoji: '⏱️', title: 'Deep worker', goal: (n) => `${n} hours studied`, metric: (b) => b.totalMinutes / 60, tiers: [10, 25, 50] },
+  { id: 'modules', emoji: '🧩', title: 'Module master', goal: (n) => `${n} module${n === 1 ? '' : 's'} mastered`, metric: (b) => b.modulesDone, tiers: [1, 12, 30] },
+  { id: 'quiz-ace', emoji: '🎯', title: 'Quiz ace', goal: (n) => `${n} perfect quiz${n === 1 ? '' : 'zes'}`, metric: (b) => b.perfectQuizzes, tiers: [1, 5, 15] },
+  { id: 'phase', emoji: '🏅', title: 'Phase cleared', goal: (n) => `${n} phase${n === 1 ? '' : 's'} cleared`, metric: (b) => b.phasesDone, tiers: [1, 5, 9] },
+  { id: 'builder', emoji: '🛠️', title: 'Builder', goal: (n) => `${n} project milestone${n === 1 ? '' : 's'} shipped`, metric: (b) => b.milestonesDone, tiers: [1, 10, 25] },
+  { id: 'recall', emoji: '🗂️', title: 'Memory palace', goal: (n) => `${n} recall reviews`, metric: (b) => b.reviews, tiers: [50, 200, 500] },
+  { id: 'freeze-saved', emoji: '❄️', title: 'Saved by ice', goal: () => 'A streak freeze rescues your streak', metric: (b) => b.freezesUsed, tiers: [1] },
+  { id: 'capstone', emoji: '🏆', title: 'Capstone hero', goal: () => 'Finish DataSentinel AI', metric: (b) => (b.capstoneDone ? 1 : 0), tiers: [1] },
 ];
+
+export const badgeTier = (badge: Badge, input: BadgeInput) => badge.tiers.filter((t) => badge.metric(input) >= t).length;
+
+export const tierName = (badge: Badge, tier: number) => (badge.tiers.length > 1 && tier > 0 ? TIER_NAMES[tier - 1] : undefined);
+
+/** Every earned badge tier as "badgeId:tier", so a new tier can be celebrated on its own. */
+export const earnedBadgeKeys = (input: BadgeInput) =>
+  BADGES.flatMap((b) => Array.from({ length: badgeTier(b, input) }, (_, i) => `${b.id}:${i + 1}`));
 
 export type DayStatus = 'done' | 'missed' | 'frozen' | 'today' | 'rest' | 'future' | 'na';
 

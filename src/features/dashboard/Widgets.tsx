@@ -1,14 +1,14 @@
-import { Lock } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useState } from 'react';
 import { Link } from 'react-router';
+import { BadgeIcon } from '@/components/BadgeIcon';
 import { Icon } from '@/components/ui';
 import { flashcards, getPhase } from '@/content';
 import type { Journey } from '@/hooks/useJourney';
 import { cn } from '@/lib/cn';
 import { hues } from '@/lib/colors';
 import { diffDays, formatShort } from '@/lib/dates';
-import { BADGES, weekStrip, type BadgeInput } from '@/lib/gamification';
+import { badgeTier, BADGES, tierName, weekStrip, type BadgeInput } from '@/lib/gamification';
 import { cardHover, rise } from './motion';
 
 export function UpNext({ j }: { j: Journey }) {
@@ -90,36 +90,32 @@ export function WeekBars({ j }: { j: Journey }) {
 }
 
 export function Achievements({ input }: { input: BadgeInput }) {
-  const earned = BADGES.filter((b) => b.earned(input)).length;
+  const tiers = BADGES.map((b) => badgeTier(b, input));
+  const earned = tiers.reduce((sum, t) => sum + t, 0);
+  const total = BADGES.reduce((sum, b) => sum + b.tiers.length, 0);
   return (
     <motion.section variants={rise} className="glass p-6">
       <div className="mb-4 flex items-baseline justify-between">
         <h2 className="text-lg font-bold">🏅 Achievements</h2>
-        <p className="text-sm text-slate-500"><span className="font-bold text-slate-900 dark:text-white">{earned}</span> / {BADGES.length} unlocked</p>
+        <p className="text-sm text-slate-500"><span className="font-bold text-slate-900 dark:text-white">{earned}</span> / {total} tiers</p>
       </div>
-      <div className="grid grid-cols-4 gap-3 sm:grid-cols-6">
+      <div className="grid grid-cols-5 gap-3">
         {BADGES.map((b, i) => {
-          const got = b.earned(input);
+          const tier = tiers[i]!;
+          const next = b.tiers[tier];
+          const name = tierName(b, tier);
           return (
             <motion.div
               key={b.id}
               initial={{ scale: 0, rotate: -20 }}
               animate={{ scale: 1, rotate: 0 }}
               transition={{ type: 'spring', stiffness: 220, damping: 14, delay: 0.3 + i * 0.05 }}
-              whileHover={{ scale: 1.12, rotate: got ? 6 : 0 }}
-              className="flex flex-col items-center gap-1 text-center"
-              title={`${b.title} — ${b.hint}`}
+              whileHover={{ scale: 1.12, rotate: tier ? 6 : 0 }}
+              className="flex flex-col items-center gap-1.5 text-center"
+              title={`${b.title}${name ? ` (${name})` : ''}${next !== undefined ? ` — next: ${b.goal(next)}` : ' — complete!'}`}
             >
-              <div
-                className={cn(
-                  'relative grid size-14 place-items-center rounded-2xl text-2xl',
-                  got ? 'bg-gradient-to-br from-amber-300 via-orange-400 to-pink-500 shadow-lg shadow-orange-500/30' : 'bg-slate-200 grayscale dark:bg-white/5',
-                )}
-              >
-                <span className={cn(!got && 'opacity-30')}>{b.emoji}</span>
-                {!got && <Lock className="absolute -bottom-1 -right-1 size-4 rounded-full bg-white p-0.5 text-slate-400 dark:bg-slate-800" aria-hidden />}
-              </div>
-              <span className={cn('line-clamp-1 text-[10px] font-semibold', got ? '' : 'text-slate-400')}>{b.title}</span>
+              <BadgeIcon badge={b} tier={tier} />
+              <span className={cn('line-clamp-1 text-[10px] font-semibold', tier ? '' : 'text-slate-400')}>{b.title}</span>
             </motion.div>
           );
         })}

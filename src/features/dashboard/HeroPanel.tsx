@@ -71,7 +71,7 @@ export function HeroPanel({ j, xp, resume }: { j: Journey; xp: number; resume: R
           <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold">
             <span className="rounded-full bg-white/15 px-3 py-1 backdrop-blur">🏁 Core ends {formatShort(coreEnd)} · {daysLeft} days left</span>
             <span className="rounded-full bg-white/15 px-3 py-1 backdrop-blur">⏱ {settings.minutesPerDay} min/day · 6 + 1</span>
-            <span className="rounded-full bg-white/15 px-3 py-1 backdrop-blur">🎯 Job-ready by day 120</span>
+            <span className="rounded-full bg-white/15 px-3 py-1 backdrop-blur">🎯 Job-ready by day {j.finishDay}</span>
           </div>
 
           {resume && (

@@ -1,11 +1,13 @@
 import { Menu, Pause, Play, Settings as SettingsIcon, X } from 'lucide-react';
 import { MotionConfig } from 'motion/react';
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, ScrollRestoration } from 'react-router';
 import { Icon } from '@/components/ui';
 import { useSettings } from '@/db/hooks';
 import { cn } from '@/lib/cn';
 import type { IconName } from '@/lib/icons';
+
+const Celebrations = lazy(() => import('./Celebrations').then((m) => ({ default: m.Celebrations })));
 import { ThemeCycleButton, ThemeToggle } from './ThemeToggle';
 import { fmtClock, SEGMENT_LABEL, useTimer } from './timer';
 
@@ -152,6 +154,9 @@ export function Layout() {
         </div>
       </main>
       <TimerChip />
+      <Suspense fallback={null}>
+        <Celebrations />
+      </Suspense>
       <ScrollRestoration />
     </MotionConfig>
   );

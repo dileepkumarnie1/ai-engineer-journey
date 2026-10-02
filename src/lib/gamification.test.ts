@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { BADGES, computeXp, lastNDays, levelFor, weekStrip } from './gamification';
+import { badgeTier, BADGES, computeXp, earnedBadgeKeys, lastNDays, levelFor, tierName, weekStrip } from './gamification';
 
 const s = { startDate: '2026-09-28', restDay: 0 };
 
@@ -31,11 +31,15 @@ describe('gamification', () => {
     expect(days.map((d) => d.minutes)).toEqual([0, 0, 30]);
   });
 
-  it('unlocks badges from progress', () => {
-    const none = { logsCount: 0, totalMinutes: 0, bestStreak: 0, modulesDone: 0, phasesDone: 0, quizAce: false, milestonesDone: 0, capstoneDone: false, reviews: 0, freezesUsed: 0 };
-    expect(BADGES.filter((b) => b.earned(none))).toHaveLength(0);
-    const some = { ...none, logsCount: 1, bestStreak: 3, totalMinutes: 600 };
-    expect(BADGES.filter((b) => b.earned(some)).map((b) => b.id)).toEqual(['first-session', 'streak-3', 'hours-10']);
-    expect(BADGES.filter((b) => b.earned({ ...none, reviews: 50, freezesUsed: 1 })).map((b) => b.id)).toEqual(['recall-50', 'freeze-saved']);
+  it('unlocks badge tiers from progress', () => {
+    const none = { logsCount: 0, totalMinutes: 0, bestStreak: 0, modulesDone: 0, phasesDone: 0, perfectQuizzes: 0, milestonesDone: 0, capstoneDone: false, reviews: 0, freezesUsed: 0 };
+    expect(earnedBadgeKeys(none)).toEqual([]);
+    const some = { ...none, logsCount: 1, bestStreak: 7, totalMinutes: 600 };
+    expect(earnedBadgeKeys(some)).toEqual(['first-session:1', 'streak:1', 'streak:2', 'hours:1']);
+    const streak = BADGES.find((b) => b.id === 'streak')!;
+    expect(badgeTier(streak, { ...none, bestStreak: 21 })).toBe(3);
+    expect(tierName(streak, 2)).toBe('Silver');
+    expect(tierName(BADGES[0]!, 1)).toBeUndefined();
+    expect(earnedBadgeKeys({ ...none, reviews: 50, freezesUsed: 1 })).toEqual(['recall:1', 'freeze-saved:1']);
   });
 });

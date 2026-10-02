@@ -6,8 +6,8 @@ import { allModules } from '@/content';
 import { useOnboarded } from '@/db/hooks';
 import { DailyRecallCard, WeakSpotsCard } from '@/features/recall/RecallWidgets';
 import { useJourney } from '@/hooks/useJourney';
-import { computeXp, type BadgeInput } from '@/lib/gamification';
 import { getResumeTarget } from '@/lib/resume';
+import { ReplanCard, SkillMapCard } from './Growth';
 import { HeroPanel } from './HeroPanel';
 import { JourneyTimeline } from './JourneyTimeline';
 import { rise, stagger } from './motion';
@@ -19,33 +19,15 @@ import { Achievements, ConceptCard, UpNext, WeekBars } from './Widgets';
 export default function DashboardPage() {
   const j = useJourney();
   const onboarded = useOnboarded();
-  const xp = computeXp({
-    minutes: j.totalMinutes,
-    lessons: j.lessonsDone,
-    modulesDone: j.modulesDone,
-    milestonesDone: j.milestonesDone,
-    careerDone: j.careerDone,
-    reviews: j.reviews,
-  });
-  const badgeInput: BadgeInput = {
-    logsCount: j.logs.length,
-    totalMinutes: j.totalMinutes,
-    bestStreak: j.bestStreak,
-    modulesDone: j.modulesDone,
-    phasesDone: j.phasesDone,
-    quizAce: j.quizAce,
-    milestonesDone: j.milestonesDone,
-    capstoneDone: j.capstoneDone,
-    reviews: j.reviews,
-    freezesUsed: j.frozen.length,
-  };
   const resume = useMemo(() => getResumeTarget(allModules, j.mp, j.cp, j.logs), [j.mp, j.cp, j.logs]);
 
   if (onboarded === false) return <Navigate to="/welcome" replace />;
 
   return (
     <motion.div variants={stagger} initial="hidden" animate="show" className="space-y-6">
-      <HeroPanel j={j} xp={xp} resume={resume} />
+      <HeroPanel j={j} xp={j.xp} resume={resume} />
+
+      <ReplanCard j={j} />
 
       <ResumeCard target={resume} />
 
@@ -71,12 +53,14 @@ export default function DashboardPage() {
 
       <JourneyTimeline j={j} />
 
+      <SkillMapCard j={j} />
+
       <div className="grid gap-6 lg:grid-cols-12">
         <div className="min-w-0 lg:col-span-5">
           <WeekBars j={j} />
         </div>
         <div className="min-w-0 lg:col-span-7">
-          <Achievements input={badgeInput} />
+          <Achievements input={j.badgeInput} />
         </div>
       </div>
 

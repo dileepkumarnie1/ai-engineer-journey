@@ -5,6 +5,8 @@ export interface ScheduleSettings {
   startDate: ISODate;
   /** 0 = Sunday … 6 = Saturday; null = study every day. */
   restDay: number | null;
+  /** Calendar study days per content study day for core phases (1 = 90-day plan, 4/3 = 120-day plan). */
+  stretch?: number;
 }
 
 export interface PlannedModule {
@@ -41,7 +43,24 @@ export const nthStudyDay = (from: ISODate, n: number, s: ScheduleSettings): ISOD
   }
 };
 
+export const stretchFor = (targetDays: number) => targetDays / 90;
+
+// Plan indexes are in content study days; only core phases are stretched onto the calendar.
+const toCalendarIndex = (x: number, core: number, stretch: number) =>
+  x <= core ? x * stretch : core * stretch + (x - core);
+
+export const toContentIndex = (e: number, core: number, stretch: number) =>
+  e <= core * stretch ? e / stretch : core + (e - core * stretch);
+
+const coreDays = (plan: PlannedModule[]) => Math.max(0, ...plan.filter((p) => !p.buffer).map((p) => p.endIndex));
+
+// Guards against 3 * (4/3) landing a hair above or below an integer.
+const EPS = 1e-9;
+const firstDayAt = (x: number) => Math.ceil(x - EPS);
+
 export const buildPlan = (phases: Phase[], s: ScheduleSettings): PlannedModule[] => {
+  const stretch = s.stretch ?? 1;
+  const core = phases.filter((p) => !p.buffer).flatMap((p) => p.modules).reduce((sum, m) => sum + m.studyDays, 0);
   const plan: PlannedModule[] = [];
   let idx = 0;
   for (const phase of phases) {
@@ -53,8 +72,8 @@ export const buildPlan = (phases: Phase[], s: ScheduleSettings): PlannedModule[]
         phaseId: phase.id,
         startIndex,
         endIndex: idx,
-        startDate: nthStudyDay(s.startDate, startIndex, s),
-        endDate: nthStudyDay(s.startDate, idx - 1, s),
+        startDate: nthStudyDay(s.startDate, firstDayAt(toCalendarIndex(startIndex, core, stretch)), s),
+        endDate: nthStudyDay(s.startDate, firstDayAt(toCalendarIndex(idx, core, stretch)) - 1, s),
         buffer: Boolean(phase.buffer),
       });
     }
@@ -72,7 +91,7 @@ export const planForDate = (
   s: ScheduleSettings,
 ): PlannedModule | null => {
   if (diffDays(s.startDate, date) < 0 || !isStudyDay(date, s)) return null;
-  const idx = plannedDoneBy(date, s);
+  const idx = toContentIndex(plannedDoneBy(date, s), coreDays(plan), s.stretch ?? 1) + EPS;
   return plan.find((p) => idx >= p.startIndex && idx < p.endIndex) ?? null;
 };
 
@@ -92,7 +111,7 @@ export const projectFinish = (
   const remaining = total - actualDone;
   if (remaining <= 0.001) return null;
   const elapsed = plannedDoneBy(today, s);
-  const velocity = elapsed >= 5 ? Math.min(3, Math.max(0.2, actualDone / elapsed)) : 1;
+  const velocity = elapsed >= 5 ? Math.min(3, Math.max(0.2, actualDone / elapsed)) : 1 / (s.stretch ?? 1);
   const needed = Math.ceil(remaining / velocity);
   const from = diffDays(s.startDate, today) < 0 ? s.startDate : today;
   return nthStudyDay(from, needed - 1, s);
