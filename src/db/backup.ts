@@ -14,11 +14,14 @@ const settingsSchema = z.object({
   restDay: z.number().int().min(0).max(6).nullable(),
   targetDays: z.union([z.literal(90), z.literal(120)]),
   theme: z.enum(['dark', 'light', 'system']),
+  onboarded: z.boolean().optional(),
+  goal: text(200).optional(),
+  experience: z.partialRecord(z.enum(['python', 'ml', 'llm', 'rag', 'agents', 'ops']), z.union([z.literal(0), z.literal(1), z.literal(2)])).optional(),
 });
 
 const backupSchema = z.object({
   app: z.literal('ai-engineer-journey'),
-  version: z.literal(1),
+  version: z.union([z.literal(1), z.literal(2)]),
   exportedAt: isoDateTime,
   data: z.object({
     settings: z.array(settingsSchema).max(1),
@@ -64,6 +67,29 @@ const backupSchema = z.object({
       }),
     ),
     watched: z.array(z.object({ id: text(80), watchedAt: isoDateTime })),
+    quizAttempts: z
+      .array(
+        z.object({
+          id: z.number().int().positive().optional(),
+          moduleId: text(60),
+          at: isoDateTime,
+          score: z.number().int().min(0).max(100),
+          wrong: z.array(text(80)).max(20),
+        }),
+      )
+      .default([]),
+    reviewCards: z
+      .array(
+        z.object({
+          id: text(80),
+          box: z.number().int().min(1).max(5),
+          due: isoDate,
+          reviews: z.number().int().min(0),
+          lapses: z.number().int().min(0),
+          lastReviewed: isoDate.optional(),
+        }),
+      )
+      .default([]),
   }),
 });
 
@@ -75,7 +101,7 @@ export const exportBackup = async (): Promise<Backup> => {
   const entries = await Promise.all(TABLES.map(async (t) => [t, await db.table(t).toArray()] as const));
   return {
     app: 'ai-engineer-journey',
-    version: 1,
+    version: 2,
     exportedAt: new Date().toISOString(),
     data: Object.fromEntries(entries) as Backup['data'],
   };

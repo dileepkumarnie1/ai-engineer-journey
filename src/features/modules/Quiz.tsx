@@ -1,86 +1,102 @@
 import { useState } from 'react';
 import { Button, Card } from '@/components/ui';
+import { QuestionView } from '@/components/QuestionView';
 import type { LearningModule } from '@/content/schema';
-import { saveQuizScore } from '@/db/actions';
+import { recordQuizAttempt } from '@/db/actions';
+import { useQuizAttempts } from '@/db/hooks';
 import { cn } from '@/lib/cn';
+import { buildQuiz, isAnswered, MASTERY, scoreQuiz, type Answer } from '@/lib/quiz';
 
 export function Quiz({ module, best }: { module: LearningModule; best?: number }) {
-  const [answers, setAnswers] = useState<Record<number, number>>({});
+  const attempts = useQuizAttempts(module.id);
+  const [questions, setQuestions] = useState(() => buildQuiz(module));
+  const [answers, setAnswers] = useState<Record<string, Answer>>({});
   const [submitted, setSubmitted] = useState(false);
-  const total = module.quiz.length;
-  const correct = module.quiz.filter((q, i) => answers[i] === q.answer).length;
+  const [onlyWrong, setOnlyWrong] = useState(false);
+  const { results, correct, score } = scoreQuiz(questions, answers);
+  const allAnswered = questions.every((q) => isAnswered(q, answers[q.key]));
+  const passed = score >= MASTERY.quiz;
+  const wrongKeys = new Set(results.filter((r) => !r.correct).map((r) => r.key));
+  const shown = submitted && onlyWrong ? questions.filter((q) => wrongKeys.has(q.key)) : questions;
 
   const submit = async () => {
     setSubmitted(true);
-    await saveQuizScore(module.id, Math.round((correct / total) * 100));
+    await recordQuizAttempt(module.id, score, results);
+  };
+
+  const retry = () => {
+    setQuestions(buildQuiz(module));
+    setAnswers({});
+    setSubmitted(false);
+    setOnlyWrong(false);
   };
 
   return (
-    <Card>
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-lg font-semibold">🧠 Quick self-check</h2>
-        {best !== undefined && <span className="text-sm text-slate-500">Best: {best}%</span>}
+    <Card id="quiz" className="scroll-mt-24">
+      <div className="mb-1 flex items-center justify-between gap-2">
+        <h2 className="text-lg font-semibold">🧠 Mastery check</h2>
+        {best !== undefined && (
+          <span className="flex items-center gap-2 text-sm text-slate-500">
+            <span className="flex h-5 items-end gap-0.5" aria-hidden>
+              {attempts.slice(-6).map((a) => (
+                <span
+                  key={a.id}
+                  className={cn('w-1.5 rounded-sm', a.score >= MASTERY.quiz ? 'bg-emerald-500' : 'bg-amber-400')}
+                  style={{ height: `${Math.max(15, a.score)}%` }}
+                />
+              ))}
+            </span>
+            Best {best}% · {attempts.length} {attempts.length === 1 ? 'try' : 'tries'}
+          </span>
+        )}
       </div>
+      <p className="mb-4 text-xs text-slate-500">
+        Score {MASTERY.quiz}%+ to unlock completion. Options reshuffle every attempt, and these questions come back later in Daily Recall.
+      </p>
       <div className="space-y-5">
-        {module.quiz.map((q, qi) => (
-          <fieldset key={q.q}>
-            <legend className="mb-2 font-medium">
-              {qi + 1}. {q.q}
-            </legend>
-            <div className="grid gap-2 sm:grid-cols-2">
-              {q.options.map((opt, oi) => {
-                const picked = answers[qi] === oi;
-                const isRight = submitted && oi === q.answer;
-                const isWrong = submitted && picked && oi !== q.answer;
-                return (
-                  <button
-                    key={opt}
-                    type="button"
-                    disabled={submitted}
-                    aria-pressed={picked}
-                    onClick={() => setAnswers((a) => ({ ...a, [qi]: oi }))}
-                    className={cn(
-                      'rounded-xl border px-3 py-2 text-left text-sm transition',
-                      isRight
-                        ? 'border-emerald-500 bg-emerald-500/15'
-                        : isWrong
-                          ? 'border-rose-500 bg-rose-500/15'
-                          : picked
-                            ? 'border-violet-500 bg-violet-500/10'
-                            : 'border-slate-200 hover:bg-slate-100 dark:border-white/10 dark:hover:bg-white/5',
-                    )}
-                  >
-                    {isRight ? '✅ ' : isWrong ? '❌ ' : ''}
-                    {opt}
-                  </button>
-                );
-              })}
-            </div>
-          </fieldset>
+        {shown.map((q) => (
+          <QuestionView
+            key={q.key}
+            question={q}
+            number={questions.indexOf(q) + 1}
+            value={answers[q.key]}
+            onChange={(a) => setAnswers((prev) => ({ ...prev, [q.key]: a }))}
+            revealed={submitted}
+          />
         ))}
       </div>
-      <div className="mt-5 flex items-center gap-3">
-        {submitted ? (
-          <>
-            <p className="font-semibold">
-              {correct}/{total} correct {correct === total ? '🎉' : '💪'}
-            </p>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setAnswers({});
-                setSubmitted(false);
-              }}
-            >
-              Retry
-            </Button>
-          </>
-        ) : (
-          <Button onClick={submit} disabled={Object.keys(answers).length < total}>
-            Check answers
-          </Button>
+      <div className="mt-5 space-y-3">
+        {submitted && (
+          <p
+            role="status"
+            className={cn(
+              'rounded-xl p-3 text-sm font-semibold',
+              passed ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' : 'bg-amber-500/15 text-amber-800 dark:text-amber-200',
+            )}
+          >
+            {passed
+              ? `🎉 ${correct}/${questions.length} (${score}%): mastery check passed!`
+              : `💪 ${correct}/${questions.length} (${score}%). You need ${MASTERY.quiz}%: read the explanations, then retry.`}
+          </p>
         )}
+        <div className="flex flex-wrap items-center gap-2">
+          {submitted ? (
+            <>
+              {wrongKeys.size > 0 && (
+                <Button variant="outline" size="sm" aria-pressed={onlyWrong} onClick={() => setOnlyWrong((v) => !v)}>
+                  {onlyWrong ? 'Show all questions' : `Review ${wrongKeys.size} mistake${wrongKeys.size === 1 ? '' : 's'}`}
+                </Button>
+              )}
+              <Button variant="outline" size="sm" onClick={retry}>
+                Retry with new shuffle
+              </Button>
+            </>
+          ) : (
+            <Button onClick={submit} disabled={!allAnswered}>
+              Check answers
+            </Button>
+          )}
+        </div>
       </div>
     </Card>
   );

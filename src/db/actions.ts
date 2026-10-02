@@ -1,5 +1,7 @@
 import { db, DEFAULT_SETTINGS, type Application, type ApplicationStatus, type MilestoneStatus, type ModuleProgress, type ModuleStatus, type Settings } from './db';
-import type { ISODate } from '@/lib/dates';
+import { todayISO, type ISODate } from '@/lib/dates';
+import { masteryCheck } from '@/lib/quiz';
+import { gradeCard, isRecallKey } from '@/lib/leitner';
 
 const now = () => new Date().toISOString();
 
@@ -31,16 +33,51 @@ export const toggleCourseSelection = (moduleId: string, courseId: string) =>
     return { ...p, selectedCourseIds: selected, status, startedAt: p.startedAt ?? now() };
   });
 
-export const setModuleStatus = (moduleId: string, status: ModuleStatus) =>
+export const setModuleStatus = (moduleId: string, status: Exclude<ModuleStatus, 'done'>) =>
   updateModule(moduleId, (p) => ({
     ...p,
     status,
     startedAt: p.startedAt ?? (status !== 'not-started' ? now() : undefined),
-    completedAt: status === 'done' ? now() : undefined,
+    completedAt: undefined,
   }));
 
-export const saveQuizScore = (moduleId: string, score: number) =>
-  updateModule(moduleId, (p) => ({ ...p, quizScore: Math.max(p.quizScore ?? 0, score) }));
+/** Marks a module done only once the mastery check passes. Returns whether it was completed. */
+export const completeModule = async (moduleId: string): Promise<boolean> => {
+  let completed = false;
+  await updateModule(moduleId, (p) => {
+    if (!masteryCheck(p).ready) return p;
+    completed = true;
+    return { ...p, status: 'done', startedAt: p.startedAt ?? now(), completedAt: now() };
+  });
+  return completed;
+};
+
+export const recordQuizAttempt = async (
+  moduleId: string,
+  score: number,
+  results: { key: string; correct: boolean }[],
+  today: ISODate = todayISO(),
+) => {
+  await db.transaction('rw', db.moduleProgress, db.quizAttempts, db.reviewCards, async () => {
+    const p = (await db.moduleProgress.get(moduleId)) ?? emptyProgress(moduleId);
+    await db.moduleProgress.put({
+      ...p,
+      quizScore: Math.max(p.quizScore ?? 0, score),
+      status: p.status === 'not-started' ? 'in-progress' : p.status,
+      startedAt: p.startedAt ?? now(),
+    });
+    await db.quizAttempts.add({ moduleId, at: now(), score, wrong: results.filter((r) => !r.correct).map((r) => r.key) });
+    for (const r of results.filter((x) => isRecallKey(x.key))) {
+      await db.reviewCards.put(gradeCard(await db.reviewCards.get(r.key), r.key, r.correct, today));
+    }
+  });
+};
+
+export const reviewRecallCard = async (id: string, correct: boolean, today: ISODate = todayISO()) => {
+  await db.transaction('rw', db.reviewCards, async () => {
+    await db.reviewCards.put(gradeCard(await db.reviewCards.get(id), id, correct, today));
+  });
+};
 
 export const setConfidence = (moduleId: string, confidence: number) =>
   updateModule(moduleId, (p) => ({ ...p, confidence }));

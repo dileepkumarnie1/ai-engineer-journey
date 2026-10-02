@@ -1,6 +1,6 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useMemo } from 'react';
-import { db, DEFAULT_SETTINGS, type CourseProgress, type ModuleProgress } from './db';
+import { db, DEFAULT_SETTINGS, type CourseProgress, type ModuleProgress, type ReviewCard } from './db';
 
 export const useSettings = () => useLiveQuery(() => db.settings.get('app'), []) ?? DEFAULT_SETTINGS;
 
@@ -33,3 +33,13 @@ export const useWatchedSet = () => {
   const rows = useLiveQuery(() => db.watched.toArray(), []);
   return useMemo(() => new Set((rows ?? []).map((r) => r.id)), [rows]);
 };
+
+const NO_CARDS: ReviewCard[] = [];
+export const useReviewCards = () => useLiveQuery(() => db.reviewCards.toArray(), []) ?? NO_CARDS;
+
+export const useQuizAttempts = (moduleId: string) =>
+  useLiveQuery(() => db.quizAttempts.where('moduleId').equals(moduleId).sortBy('at'), [moduleId]) ?? [];
+
+/** undefined while loading, so callers don't redirect before settings are read. */
+export const useOnboarded = () =>
+  useLiveQuery(async () => Boolean((await db.settings.get('app'))?.onboarded), []);

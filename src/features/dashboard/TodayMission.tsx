@@ -1,9 +1,10 @@
 import { ArrowRight, Check, Coffee, Pause, Play } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Link } from 'react-router';
-import { fmtClock, useTimer } from '@/app/timer';
+import { fmtClock, SEGMENT_LABEL, useTimer } from '@/app/timer';
 import { buttonStyles } from '@/components/buttonStyles';
 import { FlowDiagram } from '@/components/FlowDiagram';
+import { SessionPresetPicker } from '@/components/SessionPresetPicker';
 import { Icon } from '@/components/ui';
 import { getPhase } from '@/content';
 import type { Journey } from '@/hooks/useJourney';
@@ -103,12 +104,14 @@ export function TodayMission({ j }: { j: Journey }) {
 
             <FlowDiagram steps={module.flow} dotClass={h.dot} />
 
+            {!timer.running && timer.elapsedSec === 0 && <SessionPresetPicker />}
+
             <div className="flex flex-wrap items-center gap-3">
               {timer.running || timer.elapsedSec > 0 ? (
                 <div className="flex items-center gap-3 rounded-2xl bg-slate-900 px-4 py-2.5 text-white dark:bg-white/10">
                   <span className={cn('size-2.5 rounded-full', timer.running ? 'animate-pulse bg-emerald-400' : 'bg-amber-400')} />
                   <span className="font-semibold tabular-nums">{fmtClock(timer.elapsedSec)}</span>
-                  <span className="text-sm text-white/70">{timer.segment === 'learn' ? '📚 Learning' : timer.segment === 'build' ? '🛠 Building' : '✅ Done'}</span>
+                  <span className="text-sm text-white/70">{SEGMENT_LABEL[timer.segment]}</span>
                   <button type="button" onClick={timer.running ? timer.pause : () => timer.start()} className="rounded-lg p-1 hover:bg-white/15" aria-label={timer.running ? 'Pause' : 'Resume'}>
                     {timer.running ? <Pause className="size-4" /> : <Play className="size-4" />}
                   </button>
@@ -121,7 +124,7 @@ export function TodayMission({ j }: { j: Journey }) {
                   onClick={() => timer.start(module.id)}
                   className="animate-glow inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-violet-600 to-cyan-500 px-6 py-3 font-semibold text-white shadow-lg shadow-violet-500/30"
                 >
-                  <Play className="size-5 fill-white" /> Start {settings.minutesPerDay}-min session
+                  <Play className="size-5 fill-white" /> Start {Math.round(timer.totalSec / 60)}-min session
                 </motion.button>
               )}
               <Link to={`/module/${module.id}`} className={buttonStyles('outline')}>
@@ -131,6 +134,12 @@ export function TodayMission({ j }: { j: Journey }) {
                 <Link to="/tracker" className="text-sm font-medium text-violet-600 hover:underline dark:text-violet-300">Log reflection →</Link>
               )}
             </div>
+            {j.todayMinutes === 0 && (
+              <p className="text-xs text-slate-500">
+                🔋 Low on energy? A ⚡ micro session or a few minutes of{' '}
+                <Link to="/recall" className="font-medium text-violet-600 hover:underline dark:text-violet-300">Daily Recall</Link> still counts for your streak.
+              </p>
+            )}
           </div>
         )}
       </div>

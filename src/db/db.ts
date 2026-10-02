@@ -4,6 +4,9 @@ import type { ISODate } from '@/lib/dates';
 export type ModuleStatus = 'not-started' | 'in-progress' | 'done';
 export type MilestoneStatus = 'todo' | 'doing' | 'done';
 export type ApplicationStatus = 'wishlist' | 'applied' | 'interview' | 'offer' | 'rejected';
+export type SkillArea = 'python' | 'ml' | 'llm' | 'rag' | 'agents' | 'ops';
+/** 0 = new to it, 1 = some experience, 2 = solid. */
+export type ExperienceLevel = 0 | 1 | 2;
 
 export interface Settings {
   key: 'app';
@@ -13,6 +16,9 @@ export interface Settings {
   restDay: number | null;
   targetDays: 90 | 120;
   theme: 'dark' | 'light' | 'system';
+  onboarded?: boolean;
+  goal?: string;
+  experience?: Partial<Record<SkillArea, ExperienceLevel>>;
 }
 
 export interface ModuleProgress {
@@ -67,6 +73,25 @@ export interface Watched {
   watchedAt: string;
 }
 
+export interface QuizAttempt {
+  id?: number;
+  moduleId: string;
+  at: string;
+  score: number;
+  /** Keys of questions answered wrongly. */
+  wrong: string[];
+}
+
+/** Leitner spaced-repetition state for one recall item. */
+export interface ReviewCard {
+  id: string;
+  box: number;
+  due: ISODate;
+  reviews: number;
+  lapses: number;
+  lastReviewed?: ISODate;
+}
+
 export const DEFAULT_SETTINGS: Settings = {
   key: 'app',
   name: 'Future AI Engineer',
@@ -86,10 +111,12 @@ export class JourneyDB extends Dexie {
   career!: EntityTable<CareerState, 'id'>;
   applications!: EntityTable<Application, 'id'>;
   watched!: EntityTable<Watched, 'id'>;
+  quizAttempts!: EntityTable<QuizAttempt, 'id'>;
+  reviewCards!: EntityTable<ReviewCard, 'id'>;
 
   constructor(name = 'ai-engineer-journey') {
     super(name);
-    this.version(1).stores({
+    const v1 = {
       settings: 'key',
       moduleProgress: 'moduleId, status',
       courseProgress: 'courseId',
@@ -98,7 +125,9 @@ export class JourneyDB extends Dexie {
       career: 'id',
       applications: '++id, status',
       watched: 'id',
-    });
+    };
+    this.version(1).stores(v1);
+    this.version(2).stores({ ...v1, quizAttempts: '++id, moduleId', reviewCards: 'id, due' });
   }
 }
 
@@ -113,4 +142,6 @@ export const TABLES = [
   'career',
   'applications',
   'watched',
+  'quizAttempts',
+  'reviewCards',
 ] as const;

@@ -15,6 +15,8 @@ export const router = createBrowserRouter([
     HydrateFallback: PageLoader,
     children: [
       { index: true, lazy: page(() => import('@/features/dashboard/DashboardPage')) },
+      { path: 'welcome', lazy: page(() => import('@/features/onboarding/WelcomePage')) },
+      { path: 'recall', lazy: page(() => import('@/features/recall/RecallPage')) },
       { path: 'roadmap', lazy: page(() => import('@/features/roadmap/RoadmapPage')) },
       { path: 'module/:moduleId', lazy: page(() => import('@/features/modules/ModulePage')) },
       { path: 'courses', lazy: page(() => import('@/features/courses/CoursesPage')) },

@@ -1,7 +1,7 @@
 import { addDays, diffDays, weekday, type ISODate } from './dates';
 import { isStudyDay, type ScheduleSettings } from './schedule';
 
-export const XP_RULES = { minute: 1, lesson: 10, module: 150, milestone: 100, career: 25 } as const;
+export const XP_RULES = { minute: 1, lesson: 10, module: 150, milestone: 100, career: 25, review: 5 } as const;
 
 export interface XpInput {
   minutes: number;
@@ -9,6 +9,7 @@ export interface XpInput {
   modulesDone: number;
   milestonesDone: number;
   careerDone: number;
+  reviews: number;
 }
 
 export const computeXp = (i: XpInput): number =>
@@ -16,7 +17,8 @@ export const computeXp = (i: XpInput): number =>
   i.lessons * XP_RULES.lesson +
   i.modulesDone * XP_RULES.module +
   i.milestonesDone * XP_RULES.milestone +
-  i.careerDone * XP_RULES.career;
+  i.careerDone * XP_RULES.career +
+  i.reviews * XP_RULES.review;
 
 export const LEVELS = [
   { min: 0, title: 'Data Tester', emoji: '🧪' },
@@ -47,6 +49,8 @@ export interface BadgeInput {
   quizAce: boolean;
   milestonesDone: number;
   capstoneDone: boolean;
+  reviews: number;
+  freezesUsed: number;
 }
 
 export const BADGES: { id: string; emoji: string; title: string; hint: string; earned: (b: BadgeInput) => boolean }[] = [
@@ -60,15 +64,18 @@ export const BADGES: { id: string; emoji: string; title: string; hint: string; e
   { id: 'builder', emoji: '🛠️', title: 'Builder', hint: 'Ship a project milestone', earned: (b) => b.milestonesDone >= 1 },
   { id: 'hours-50', emoji: '🧠', title: 'Half-century', hint: '50 hours studied', earned: (b) => b.totalMinutes >= 3000 },
   { id: 'capstone', emoji: '🏆', title: 'Capstone hero', hint: 'Finish DataSentinel AI', earned: (b) => b.capstoneDone },
+  { id: 'recall-50', emoji: '🗂️', title: 'Memory palace', hint: '50 recall reviews', earned: (b) => b.reviews >= 50 },
+  { id: 'freeze-saved', emoji: '❄️', title: 'Saved by ice', hint: 'A streak freeze rescued your streak', earned: (b) => b.freezesUsed >= 1 },
 ];
 
-export type DayStatus = 'done' | 'missed' | 'today' | 'rest' | 'future' | 'na';
+export type DayStatus = 'done' | 'missed' | 'frozen' | 'today' | 'rest' | 'future' | 'na';
 
 /** Monday-to-Sunday strip for the week containing `today`. */
 export const weekStrip = (
   today: ISODate,
   s: ScheduleSettings,
   minutes: Map<ISODate, number>,
+  frozen: ReadonlySet<ISODate> = new Set(),
 ): { date: ISODate; status: DayStatus; minutes: number }[] => {
   const monday = addDays(today, -((weekday(today) + 6) % 7));
   return Array.from({ length: 7 }, (_, i) => {
@@ -80,6 +87,7 @@ export const weekStrip = (
     else if (!isStudyDay(date, s)) status = 'rest';
     else if (date === today) status = 'today';
     else if (diffDays(date, today) < 0) status = 'future';
+    else if (frozen.has(date)) status = 'frozen';
     else status = 'missed';
     return { date, status, minutes: m };
   });

@@ -1,5 +1,6 @@
 import { Download, RotateCcw, Upload } from 'lucide-react';
 import { useRef, useState } from 'react';
+import { Link } from 'react-router';
 import { Button, Card, PageHeader } from '@/components/ui';
 import { saveSettings } from '@/db/actions';
 import { downloadBackup, MAX_BACKUP_BYTES, parseBackup, resetAll, restoreBackup } from '@/db/backup';
@@ -31,6 +32,13 @@ export default function SettingsPage() {
         <div>
           <label htmlFor="name" className="mb-1 block text-sm font-medium">Display name</label>
           <input id="name" className={field} value={s.name} maxLength={60} onChange={(e) => saveSettings({ name: e.target.value })} />
+        </div>
+        <div>
+          <label htmlFor="goal" className="mb-1 flex justify-between text-sm font-medium">
+            Your why
+            <Link to="/welcome" className="text-xs font-normal text-violet-600 hover:underline dark:text-violet-300">Redo skills check →</Link>
+          </label>
+          <input id="goal" className={field} value={s.goal ?? ''} maxLength={200} placeholder="Why are you becoming an AI Engineer?" onChange={(e) => saveSettings({ goal: e.target.value })} />
         </div>
         <div>
           <label htmlFor="start" className="mb-1 block text-sm font-medium">Start date</label>

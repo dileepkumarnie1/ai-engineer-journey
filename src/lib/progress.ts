@@ -62,27 +62,44 @@ export const minutesByDate = (logs: DailyLog[]): Map<ISODate, number> => {
   return map;
 };
 
-/** Consecutive study days with logged time. Rest days never break the streak; today is a grace day. */
-export const currentStreak = (
-  minutes: Map<ISODate, number>,
-  today: ISODate,
-  s: ScheduleSettings,
-): number => {
-  let streak = 0;
-  for (let d = today; diffDays(s.startDate, d) >= 0; d = addDays(d, -1)) {
-    if ((minutes.get(d) ?? 0) > 0) streak++;
-    else if (d === today || !isStudyDay(d, s)) continue;
-    else break;
-  }
-  return streak;
-};
+export const FREEZE_EVERY = 7;
+export const MAX_FREEZES = 2;
 
-export const longestStreak = (minutes: Map<ISODate, number>, today: ISODate, s: ScheduleSettings) => {
+export interface StreakInfo {
+  current: number;
+  best: number;
+  /** Freezes banked for future missed days. */
+  freezes: number;
+  /** Missed study days covered by a freeze. */
+  frozen: ISODate[];
+}
+
+/**
+ * Consecutive study days with logged time. Rest days never break the streak and today is a grace day.
+ * Every 7 study days earns a freeze (max 2) that automatically covers one missed study day.
+ */
+export const streakInfo = (minutes: Map<ISODate, number>, today: ISODate, s: ScheduleSettings): StreakInfo => {
+  let current = 0;
   let best = 0;
-  let run = 0;
+  let freezes = 0;
+  let sinceEarned = 0;
+  const frozen: ISODate[] = [];
   for (let d = s.startDate; diffDays(d, today) >= 0; d = addDays(d, 1)) {
-    if ((minutes.get(d) ?? 0) > 0) best = Math.max(best, ++run);
-    else if (isStudyDay(d, s) && d !== today) run = 0;
+    if ((minutes.get(d) ?? 0) > 0) {
+      best = Math.max(best, ++current);
+      if (++sinceEarned === FREEZE_EVERY) {
+        freezes = Math.min(MAX_FREEZES, freezes + 1);
+        sinceEarned = 0;
+      }
+    } else if (d === today || !isStudyDay(d, s)) {
+      continue;
+    } else if (freezes > 0) {
+      freezes--;
+      frozen.push(d);
+    } else {
+      current = 0;
+      sinceEarned = 0;
+    }
   }
-  return best;
+  return { current, best, freezes, frozen };
 };

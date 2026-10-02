@@ -49,6 +49,9 @@ export function HeroPanel({ j, xp, resume }: { j: Journey; xp: number; resume: R
           >
             {greeting(new Date().getHours())}, {settings.name} 👋
           </motion.p>
+          {settings.goal && (
+            <p className="mt-1 max-w-xl text-sm font-medium text-white/90">🎯 Your why: {settings.goal}</p>
+          )}
 
           <h1 className="mt-2 flex flex-wrap items-baseline gap-x-3 font-extrabold tracking-tight">
             {beforeStart ? (

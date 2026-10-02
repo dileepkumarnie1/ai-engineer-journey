@@ -9,12 +9,14 @@ import { FlowDiagram } from '@/components/FlowDiagram';
 import { YouTubeEmbed } from '@/components/YouTubeEmbed';
 import { Badge, Button, Card, ExternalLink, Icon, ProgressBar, ProgressRing } from '@/components/ui';
 import { allModules, getModule, getPhaseOfModule } from '@/content';
-import { setModuleStatus, toggleCourseSelection, toggleLesson } from '@/db/actions';
+import { completeModule, setModuleStatus, toggleCourseSelection, toggleLesson } from '@/db/actions';
 import { useJourney } from '@/hooks/useJourney';
 import { cn } from '@/lib/cn';
 import { hues } from '@/lib/colors';
 import { formatShort } from '@/lib/dates';
+import { testOutArea } from '@/lib/onboarding';
 import { courseCompletion, getLessons, moduleCompletion } from '@/lib/progress';
+import { MASTERY, masteryCheck } from '@/lib/quiz';
 import { sortCourses, type CourseSort } from '@/lib/scoring';
 import { Quiz } from './Quiz';
 import { Reflection } from './Reflection';
@@ -61,6 +63,8 @@ export default function ModulePage() {
   const idx = allModules.findIndex((m) => m.id === module.id);
   const prev = allModules[idx - 1];
   const next = allModules[idx + 1];
+  const mastery = masteryCheck(progress);
+  const fastTrack = module.kind === 'learn' && status !== 'done' ? testOutArea(j.settings.experience, phase.id) : undefined;
 
   return (
     <div className="space-y-6">
@@ -100,6 +104,17 @@ export default function ModulePage() {
           </ProgressRing>
         </div>
       </motion.header>
+
+      {fastTrack && (
+        <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-amber-400/50 bg-amber-500/10 p-4 text-sm">
+          <span className="text-2xl" aria-hidden>⚡</span>
+          <p className="flex-1">
+            <span className="font-semibold">Fast-track available.</span> You rated yourself solid in {fastTrack.emoji} {fastTrack.label}. Skip the
+            courses if you like: pass the mastery check and rate your confidence to complete this module.
+          </p>
+          <a href="#quiz" className={buttonStyles('outline', 'sm')}>Test out now</a>
+        </div>
+      )}
 
       {/* In pictures */}
       <Card>
@@ -268,9 +283,20 @@ export default function ModulePage() {
             </Button>
           </div>
         ) : (
-          <Button variant="success" onClick={() => setModuleStatus(module.id, 'done')}>
-            <Check className="size-4" /> Mark module complete
-          </Button>
+          <div className="space-y-2">
+            <p className="text-sm font-semibold">🎓 Mastery gate: prove it to complete it</p>
+            <ul className="flex flex-wrap gap-2 text-sm">
+              <li className={cn('rounded-full px-3 py-1', mastery.quizOk ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' : 'bg-slate-200/70 dark:bg-white/10')}>
+                {mastery.quizOk ? '✅' : '⬜'} Quiz ≥ {MASTERY.quiz}%{progress?.quizScore !== undefined && ` (best ${progress.quizScore}%)`}
+              </li>
+              <li className={cn('rounded-full px-3 py-1', mastery.confidenceOk ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' : 'bg-slate-200/70 dark:bg-white/10')}>
+                {mastery.confidenceOk ? '✅' : '⬜'} Confidence ≥ 🙂
+              </li>
+            </ul>
+            <Button variant="success" disabled={!mastery.ready} onClick={() => completeModule(module.id)}>
+              <Check className="size-4" /> Mark module complete
+            </Button>
+          </div>
         )}
         <div className="flex gap-2">
           {prev && (

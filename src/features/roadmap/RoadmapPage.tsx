@@ -8,6 +8,7 @@ import { useJourney } from '@/hooks/useJourney';
 import { cn } from '@/lib/cn';
 import { hues } from '@/lib/colors';
 import { formatShort } from '@/lib/dates';
+import { testOutArea } from '@/lib/onboarding';
 import { moduleCompletion, phaseCompletion } from '@/lib/progress';
 
 export default function RoadmapPage() {
@@ -107,6 +108,9 @@ export default function RoadmapPage() {
                             <h3 className="font-semibold">{m.title}</h3>
                             {m.kind === 'project' && <Badge className="bg-amber-500/15 text-amber-600 dark:text-amber-300">🛠 Project</Badge>}
                             {isToday && <Badge className="bg-violet-500 text-white">Today</Badge>}
+                            {m.kind === 'learn' && status !== 'done' && testOutArea(j.settings.experience, p.id) && (
+                              <Badge className="bg-amber-400/20 text-amber-700 dark:text-amber-300" title="You rated this area solid: pass the mastery check to test out">⚡ Test out</Badge>
+                            )}
                           </div>
                           <p className="truncate text-sm text-slate-500 dark:text-slate-400">{m.tagline}</p>
                         </div>

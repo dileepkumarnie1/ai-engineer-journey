@@ -54,11 +54,13 @@ export const moduleSchema = z.object({
         q: z.string().max(120),
         options: z.array(z.string().max(90)).min(2).max(4),
         answer: z.number().int().min(0).max(3),
+        why: z.string().min(10).max(220),
       }),
     )
-    .min(1),
+    .min(2),
 });
 export type LearningModule = z.infer<typeof moduleSchema>;
+export type QuizQuestion = LearningModule['quiz'][number];
 
 export const phaseSchema = z.object({
   id,

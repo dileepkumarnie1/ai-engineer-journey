@@ -1,23 +1,25 @@
 import { useMemo } from 'react';
-import { careerChecklist, corePhases, getModule, phases, projects } from '@/content';
+import { allModules, careerChecklist, corePhases, getModule, getPhaseOfModule, phases, projects } from '@/content';
 import {
   useCareerSet,
   useCourseProgressMap,
   useLogs,
   useMilestoneMap,
   useModuleProgressMap,
+  useReviewCards,
   useSettings,
 } from '@/db/hooks';
 import { todayISO } from '@/lib/dates';
 import {
-  currentStreak,
-  longestStreak,
   minutesByDate,
   readinessScore,
+  streakInfo,
   studyDaysDone,
   totalStudyDays,
 } from '@/lib/progress';
 import { buildPlan, calendarDay, planForDate, plannedDoneBy, projectFinish } from '@/lib/schedule';
+import { nextDueDate, recallQueue, weakSpots } from '@/lib/srs';
+import { weekStrip } from '@/lib/gamification';
 
 /** Single source of derived journey stats for the whole app. */
 export const useJourney = () => {
@@ -27,6 +29,7 @@ export const useJourney = () => {
   const logs = useLogs();
   const milestones = useMilestoneMap();
   const career = useCareerSet();
+  const cards = useReviewCards();
 
   return useMemo(() => {
     const today = todayISO();
@@ -50,6 +53,11 @@ export const useJourney = () => {
     const progressRows = [...mp.values()];
     const capstone = projects.find((p) => p.id === 'capstone');
     const todayLogs = logs.filter((l) => l.date === today);
+    const streak = streakInfo(minutes, today, s);
+    // Interview flashcards join recall once the learner reaches the LLM phase.
+    const flashUnlocked = progressRows.some((r) => r.quizScore !== undefined && (getPhaseOfModule(r.moduleId)?.order ?? 0) >= 3);
+    const week = weekStrip(today, s, minutes, new Set(streak.frozen));
+    const weekGoal = week.filter((d) => d.status !== 'rest' && d.status !== 'na').length * settings.minutesPerDay;
 
     return {
       settings,
@@ -68,8 +76,18 @@ export const useJourney = () => {
       minutes,
       totalMinutes,
       plannedMinutes: plannedDone * settings.minutesPerDay,
-      streak: currentStreak(minutes, today, s),
-      bestStreak: longestStreak(minutes, today, s),
+      streak: streak.current,
+      bestStreak: streak.best,
+      freezes: streak.freezes,
+      frozen: streak.frozen,
+      week,
+      weekGoal,
+      weekMinutes: week.reduce((sum, d) => sum + d.minutes, 0),
+      cards,
+      reviews: cards.reduce((sum, c) => sum + c.reviews, 0),
+      recall: recallQueue(cards, today, flashUnlocked),
+      nextReview: nextDueDate(cards, today),
+      weakSpots: weakSpots(allModules, mp, cards),
       learning,
       projectsFrac,
       careerFrac,
@@ -87,7 +105,7 @@ export const useJourney = () => {
       cp,
       logs,
     };
-  }, [settings, mp, cp, logs, milestones, career]);
+  }, [settings, mp, cp, logs, milestones, career, cards]);
 };
 
 export type Journey = ReturnType<typeof useJourney>;

@@ -7,10 +7,11 @@ import { useSettings } from '@/db/hooks';
 import { cn } from '@/lib/cn';
 import type { IconName } from '@/lib/icons';
 import { ThemeCycleButton, ThemeToggle } from './ThemeToggle';
-import { fmtClock, useTimer } from './timer';
+import { fmtClock, SEGMENT_LABEL, useTimer } from './timer';
 
 const NAV: { to: string; label: string; icon: IconName }[] = [
   { to: '/', label: 'Dashboard', icon: 'LayoutDashboard' },
+  { to: '/recall', label: 'Daily Recall', icon: 'Brain' },
   { to: '/roadmap', label: 'Roadmap', icon: 'Map' },
   { to: '/courses', label: 'Courses', icon: 'GraduationCap' },
   { to: '/tracker', label: 'Tracker', icon: 'Clock' },
@@ -68,7 +69,7 @@ function TimerChip() {
       aria-label="Focus timer"
     >
       <span className={cn('size-2 rounded-full', t.running ? 'animate-pulse bg-emerald-400' : 'bg-amber-400')} />
-      {t.segment === 'learn' ? '📚 Learn' : t.segment === 'build' ? '🛠 Build' : '✅ Done'}
+      {SEGMENT_LABEL[t.segment]}
       <span className="tabular-nums">{fmtClock(t.elapsedSec)}</span>
       <button
         type="button"

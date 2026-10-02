@@ -17,8 +17,9 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { fmtClock, useTimer } from '@/app/timer';
+import { fmtClock, SEGMENT_LABEL, useTimer } from '@/app/timer';
 import { Heatmap } from '@/components/Heatmap';
+import { SessionPresetPicker } from '@/components/SessionPresetPicker';
 import { Button, Card, PageHeader, ProgressRing } from '@/components/ui';
 import { allModules, corePhases, getModule } from '@/content';
 import { addLog, deleteLog } from '@/db/actions';
@@ -49,32 +50,42 @@ function ModuleSelect({ value, onChange, id }: { value?: string; onChange: (v?: 
   );
 }
 
+const SEGMENT_BAR = { learn: 'bg-violet-500', build: 'bg-amber-500', break: 'bg-emerald-500' } as const;
+
 function FocusTimer({ defaultModule }: { defaultModule?: string }) {
   const t = useTimer();
   const [msg, setMsg] = useState('');
   const moduleId = t.moduleId ?? defaultModule;
-  const learnMin = Math.round(t.learnSec / 60);
-  const buildMin = Math.round((t.totalSec - t.learnSec) / 60);
 
   return (
     <Card className="flex flex-col items-center gap-4 text-center">
       <h2 className="self-start text-lg font-semibold">⏱ Focus session</h2>
+      <div className="w-full text-left">
+        <SessionPresetPicker />
+      </div>
       <ProgressRing value={t.elapsedSec / t.totalSec} size={200} stroke={14} label="Session progress">
         <div>
           <p className="text-4xl font-extrabold tabular-nums">{fmtClock(t.elapsedSec)}</p>
           <p className="text-sm text-slate-500">of {fmtClock(t.totalSec)}</p>
           <p className="mt-1 text-sm font-semibold">
-            {t.segment === 'learn' ? '📚 Learn' : t.segment === 'build' ? '🛠 Build' : '✅ Session done'}
+            {t.segment === 'done' ? '✅ Session done' : `${SEGMENT_LABEL[t.segment]} · ${fmtClock(t.segmentLeftSec)} left`}
           </p>
         </div>
       </ProgressRing>
-      <div className="flex w-full gap-2 text-xs">
-        <div className={cn('flex-[2] rounded-lg py-1.5', t.segment === 'learn' ? 'bg-violet-500 text-white' : 'bg-slate-200 dark:bg-white/10')}>
-          📚 Learn {learnMin} min
-        </div>
-        <div className={cn('flex-1 rounded-lg py-1.5', t.segment === 'build' ? 'bg-amber-500 text-white' : 'bg-slate-200 dark:bg-white/10')}>
-          🛠 Build {buildMin} min
-        </div>
+      <div className="flex w-full gap-1 text-[11px]" aria-label="Session segments">
+        {t.segments.map((s, i) => (
+          <div
+            key={i}
+            style={{ flexGrow: s.sec }}
+            className={cn(
+              'basis-0 truncate rounded-lg py-1.5',
+              i === t.segmentIndex ? `${SEGMENT_BAR[s.kind]} text-white` : i < t.segmentIndex ? 'bg-slate-300 dark:bg-white/20' : 'bg-slate-200 dark:bg-white/10',
+            )}
+            title={`${SEGMENT_LABEL[s.kind]} ${s.sec / 60} min`}
+          >
+            {s.kind === 'break' ? '☕' : `${SEGMENT_LABEL[s.kind]} ${s.sec / 60}`}
+          </div>
+        ))}
       </div>
       <div className="w-full text-left">
         <label htmlFor="timer-module" className="mb-1 block text-sm font-medium">Working on</label>
@@ -93,7 +104,7 @@ function FocusTimer({ defaultModule }: { defaultModule?: string }) {
         </Button>
         <Button
           variant="success"
-          disabled={t.elapsedSec < 60}
+          disabled={t.focusSec < 60}
           onClick={async () => {
             const m = await t.logAndReset();
             setMsg(`Logged ${m} min ✔`);

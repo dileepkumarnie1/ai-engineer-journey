@@ -1,8 +1,10 @@
 import { motion } from 'motion/react';
 import { useMemo } from 'react';
-import { Link } from 'react-router';
+import { Link, Navigate } from 'react-router';
 import { Heatmap } from '@/components/Heatmap';
 import { allModules } from '@/content';
+import { useOnboarded } from '@/db/hooks';
+import { DailyRecallCard, WeakSpotsCard } from '@/features/recall/RecallWidgets';
 import { useJourney } from '@/hooks/useJourney';
 import { computeXp, type BadgeInput } from '@/lib/gamification';
 import { getResumeTarget } from '@/lib/resume';
@@ -16,12 +18,14 @@ import { Achievements, ConceptCard, UpNext, WeekBars } from './Widgets';
 
 export default function DashboardPage() {
   const j = useJourney();
+  const onboarded = useOnboarded();
   const xp = computeXp({
     minutes: j.totalMinutes,
     lessons: j.lessonsDone,
     modulesDone: j.modulesDone,
     milestonesDone: j.milestonesDone,
     careerDone: j.careerDone,
+    reviews: j.reviews,
   });
   const badgeInput: BadgeInput = {
     logsCount: j.logs.length,
@@ -32,8 +36,12 @@ export default function DashboardPage() {
     quizAce: j.quizAce,
     milestonesDone: j.milestonesDone,
     capstoneDone: j.capstoneDone,
+    reviews: j.reviews,
+    freezesUsed: j.frozen.length,
   };
   const resume = useMemo(() => getResumeTarget(allModules, j.mp, j.cp, j.logs), [j.mp, j.cp, j.logs]);
+
+  if (onboarded === false) return <Navigate to="/welcome" replace />;
 
   return (
     <motion.div variants={stagger} initial="hidden" animate="show" className="space-y-6">
@@ -48,6 +56,15 @@ export default function DashboardPage() {
         <div className="min-w-0 xl:col-span-4">
           <UpNext j={j} />
         </div>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-12">
+        <motion.div variants={rise} className="min-w-0 lg:col-span-7">
+          <DailyRecallCard j={j} />
+        </motion.div>
+        <motion.div variants={rise} className="min-w-0 lg:col-span-5">
+          <WeakSpotsCard j={j} />
+        </motion.div>
       </div>
 
       <StatTiles j={j} />

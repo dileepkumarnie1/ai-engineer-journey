@@ -29,7 +29,19 @@ export const phases: Phase[] = [
         courses: [c.baraaRoadmap, c.babbarRoadmap, c.karpathySoftware, m.ngOpportunities, c.roadmapSh],
         quiz: [
           {
+            q: 'Which activity is most central to day-to-day AI engineering?',
+            options: [
+              'Designing GPU chips',
+              'Wiring LLMs to data, tools and evals to ship a product',
+              'Collecting pre-training corpora',
+              'Writing research papers',
+            ],
+            answer: 1,
+            why: 'AI engineers integrate existing models into products: retrieval, tools, evals and deployment. Training and chips are other roles.',
+          },
+          {
             q: 'Main difference between an AI Engineer and an ML Engineer?',
+            why: 'ML engineers often train and tune models; AI engineers mostly build applications on top of pre-trained foundation models via APIs.',
             options: [
               'AI Engineers mainly train models from scratch',
               'AI Engineers build products on pre-trained models',
@@ -40,6 +52,7 @@ export const phases: Phase[] = [
           },
           {
             q: 'Which of your existing skills transfers most directly?',
+            why: 'AI quality is an evaluation problem. Designing test cases, golden data and regression checks transfers directly to LLM evals.',
             options: ['UI animation', 'Data validation & testing', 'Network cabling', 'Graphic design'],
             answer: 1,
           },
@@ -63,12 +76,20 @@ export const phases: Phase[] = [
         courses: [c.uv, c.ollama, c.aiStudio, c.githubModels],
         quiz: [
           {
+            q: 'You committed an API key to GitHub by mistake. First step?',
+            options: ['Delete the commit and carry on', 'Revoke / rotate the key immediately', 'Make the repo private', 'Ignore it if no one noticed'],
+            answer: 1,
+            why: 'Once pushed, assume the key is leaked: bots scan GitHub within minutes. Rotate it first, then clean the history.',
+          },
+          {
             q: 'Where should API keys live?',
+            why: 'A .env file kept out of Git (via .gitignore) separates secrets from code, just like prod passwords never live in pipeline code.',
             options: ['In source code', 'In a .env file excluded by .gitignore', 'In the README', 'In a commit message'],
             answer: 1,
           },
           {
             q: 'What does Ollama give you?',
+            why: 'Ollama downloads and runs open models locally: free, private and offline, ideal for experiments without API costs.',
             options: ['A cloud GPU cluster', 'Local LLMs on your machine', 'A vector database', 'A CI pipeline'],
             answer: 1,
           },
@@ -115,12 +136,20 @@ export const phases: Phase[] = [
         ],
         quiz: [
           {
+            q: 'Which expression builds a list of squares of the even numbers in xs?',
+            options: ['[x*x for x in xs if x % 2 == 0]', '{x: x*x for x in xs}', 'map(xs, square)', 'for x in xs: x*x'],
+            answer: 0,
+            why: 'A list comprehension with a filter is idiomatic: [expr for item in iterable if condition]. The braces version builds a dict.',
+          },
+          {
             q: 'Why are generators useful in LLM apps?',
+            why: 'Generators yield one item at a time without loading everything into memory: perfect for streaming tokens or large files row by row.',
             options: ['They stream items lazily, e.g. tokens or rows', 'They compile code', 'They encrypt data', 'They replace classes'],
             answer: 0,
           },
           {
             q: 'A decorator is…',
+            why: 'A decorator takes a function and returns a wrapped version, e.g. @retry adds retry logic around an LLM call without changing it.',
             options: ['A function that wraps another to add behaviour', 'A CSS style', 'A database index', 'A comment'],
             answer: 0,
           },
@@ -144,12 +173,20 @@ export const phases: Phase[] = [
         courses: [c.pydantic, c.pytest, m.pixegamiPydantic, m.pixegamiPytest, m.coreyUnittest, c.kagglePandas, m.keithPandas],
         quiz: [
           {
+            q: 'An LLM returns {"age": "abc"} for a model with age: int. Pydantic will…',
+            options: ['Silently store "abc"', 'Raise a ValidationError', 'Convert it to 0', 'Drop the field'],
+            answer: 1,
+            why: 'Pydantic refuses data it cannot coerce to the declared type and raises ValidationError. Catch it, then retry or re-prompt.',
+          },
+          {
             q: 'Pydantic mainly helps you…',
+            why: 'Pydantic parses raw dicts / JSON into typed objects and enforces types and constraints: the contract between LLM output and your code.',
             options: ['Plot charts', 'Validate and parse data into typed objects', 'Train neural nets', 'Host websites'],
             answer: 1,
           },
           {
             q: '@pytest.mark.parametrize is most like…',
+            why: 'parametrize runs the same test logic over many input / expected rows, exactly like a data-driven test case table.',
             options: ['One test case run with many data rows', 'Deleting tests', 'Compiling Python', 'Formatting code'],
             answer: 0,
           },
@@ -173,12 +210,20 @@ export const phases: Phase[] = [
         courses: [c.realPythonAsync, c.httpx, m.arjanAsyncio, m.mcodingAsync],
         quiz: [
           {
+            q: 'Why always set a timeout on LLM API calls?',
+            options: ['APIs require it', 'So a hung request cannot block your app forever', 'It lowers token cost', 'It improves answer quality'],
+            answer: 1,
+            why: 'Without a timeout one stalled connection can freeze a worker indefinitely. Timeout + retry keeps pipelines moving.',
+          },
+          {
             q: 'Best way to handle HTTP 429 from an LLM API?',
+            why: '429 means rate-limited. Waiting progressively longer (1s, 2s, 4s…) before retrying respects the limit and usually succeeds.',
             options: ['Crash', 'Retry with exponential backoff', 'Ignore it', 'Switch to FTP'],
             answer: 1,
           },
           {
             q: 'async/await in Python is best for…',
+            why: 'async shines when most time is spent waiting on network I/O, so many requests overlap. CPU-heavy work needs processes instead.',
             options: ['CPU-heavy maths', 'Waiting on many I/O calls concurrently', 'Styling UIs', 'Compiling C'],
             answer: 1,
           },
@@ -202,12 +247,20 @@ export const phases: Phase[] = [
         courses: [c.fastapi, m.fccFastapiBeginners, c.fccFastapi],
         quiz: [
           {
+            q: 'What does FastAPI return when a request body fails validation?',
+            options: ['200 OK with nulls', '422 with details of the invalid fields', '500 server crash', 'Nothing, it hangs'],
+            answer: 1,
+            why: 'FastAPI returns HTTP 422 Unprocessable Entity listing which fields failed, before your handler code ever runs.',
+          },
+          {
             q: 'Where does FastAPI serve interactive docs by default?',
+            why: 'FastAPI auto-generates OpenAPI docs and serves Swagger UI at /docs (and ReDoc at /redoc) with no extra code.',
             options: ['/swagger.exe', '/docs', '/admin', '/api.txt'],
             answer: 1,
           },
           {
             q: 'FastAPI validates request bodies using…',
+            why: 'Request and response bodies are declared as Pydantic models, so validation and docs come from one definition.',
             options: ['Regex only', 'Pydantic models', 'XML schemas', 'Nothing'],
             answer: 1,
           },
@@ -241,12 +294,20 @@ export const phases: Phase[] = [
         courses: [c.googleMlcc, c.kaggleIntroMl, m.statquestIntroMl, m.statquestBiasVariance, m.fccMlEverybody, c.r2d3, c.statquest, m.ngMlSpecialization],
         quiz: [
           {
+            q: 'Your model flags 100 rows; 80 are truly bad. Precision is…',
+            options: ['20%', '80%', '100%', 'Cannot tell without recall'],
+            answer: 1,
+            why: 'Precision = true positives / everything flagged = 80 / 100 = 80%. It measures false alarms, not missed defects.',
+          },
+          {
             q: '99% on training data, 60% on test data. That is…',
+            why: 'A big gap between training and test scores means the model memorised training noise instead of learning general patterns.',
             options: ['Underfitting', 'Overfitting', 'Perfect', 'A data-leak fix'],
             answer: 1,
           },
           {
             q: 'Recall answers…',
+            why: 'Recall = caught bad rows / all truly bad rows. Low recall means defects slip through, like defect leakage.',
             options: [
               'Of flagged rows, how many were truly bad?',
               'Of truly bad rows, how many did we catch?',
@@ -287,12 +348,20 @@ export const phases: Phase[] = [
         ],
         quiz: [
           {
+            q: 'What does the learning rate control?',
+            options: ['Number of layers', 'How big each weight-update step is', 'Dataset size', 'Number of GPUs'],
+            answer: 1,
+            why: 'It scales each gradient-descent step. Too large and training overshoots and diverges; too small and it crawls.',
+          },
+          {
             q: 'Gradient descent does what?',
+            why: 'Gradient descent finds which direction lowers the loss and nudges every weight a small step that way, again and again.',
             options: ['Adds layers', 'Adjusts weights to reduce error step by step', 'Deletes bad data', 'Encrypts the model'],
             answer: 1,
           },
           {
             q: 'Backpropagation computes…',
+            why: "Backprop applies the chain rule backwards through the network to get each weight's gradient: its share of the error.",
             options: ['How each weight contributed to the error', 'The dataset size', 'The learning schedule', 'GPU temperature'],
             answer: 0,
           },
@@ -316,12 +385,20 @@ export const phases: Phase[] = [
         courses: [c.karpathyTokenizer, c.tiktokenizer, m.statquestWord2vec, c.word2vec, c.hfLlmCourse],
         quiz: [
           {
+            q: 'Cosine similarity close to 1 between two embeddings means…',
+            options: ['The texts are unrelated', 'The texts are very similar in meaning', 'The texts have equal length', 'An error occurred'],
+            answer: 1,
+            why: 'Cosine similarity measures the angle between vectors: ~1 = same direction (similar meaning), ~0 = unrelated.',
+          },
+          {
             q: 'Two sentences with similar meaning have embeddings that are…',
+            why: 'Embedding models place semantically similar text near each other, which is what makes semantic search and RAG work.',
             options: ['Identical strings', 'Close together in vector space', 'Always orthogonal', 'Random'],
             answer: 1,
           },
           {
             q: 'LLM API pricing is usually per…',
+            why: 'Providers bill input and output tokens (word pieces). Long prompts and verbose outputs cost more.',
             options: ['Character', 'Token', 'Word document', 'Minute'],
             answer: 1,
           },
@@ -372,12 +449,20 @@ export const phases: Phase[] = [
         ],
         quiz: [
           {
+            q: 'What happens when a conversation exceeds the context window?',
+            options: ['The model gets smarter', 'Older content is cut off or the request fails', 'Tokens become free', 'It switches to a bigger model'],
+            answer: 1,
+            why: 'The context window is a hard token limit. Beyond it, text must be truncated or summarised, so the model forgets it.',
+          },
+          {
             q: 'At its core, an LLM is trained to…',
+            why: 'Pre-training teaches the model to predict the next token over huge text corpora; chat behaviour is added later by fine-tuning and RLHF.',
             options: ['Search Google', 'Predict the next token', 'Run SQL', 'Store facts in tables'],
             answer: 1,
           },
           {
             q: 'Attention helps a token…',
+            why: "Attention lets each token weigh every other token in context, so 'bank' can mean river or money depending on the sentence.",
             options: ['Use context from other tokens', 'Compress files', 'Encrypt data', 'Cut GPU cost to zero'],
             answer: 0,
           },
@@ -401,12 +486,20 @@ export const phases: Phase[] = [
         courses: [c.dlaiPromptEng, c.anthropicPrompt, m.anthropicPromptDeepDive, m.fccPromptEng, c.promptingGuide, c.learnPrompting],
         quiz: [
           {
+            q: 'Best first fix when an LLM output has the wrong format?',
+            options: ['Switch providers', 'State the exact format with an example', 'Raise temperature', 'Make the prompt shorter'],
+            answer: 1,
+            why: 'Models follow explicit specs and examples well. Showing the exact target format usually fixes format drift fastest.',
+          },
+          {
             q: 'Few-shot prompting means…',
+            why: 'Few-shot = including a few input → output examples in the prompt so the model copies the pattern.',
             options: ['Giving a few examples in the prompt', 'Using a small model', 'Sending fewer requests', 'Short answers only'],
             answer: 0,
           },
           {
             q: 'To reduce hallucinations you should…',
+            why: "Grounding the model in real context and explicitly allowing 'I don't know' removes the pressure to invent answers.",
             options: [
               "Give relevant context and allow 'I don't know'",
               'Increase temperature',
@@ -435,12 +528,20 @@ export const phases: Phase[] = [
         courses: [c.geminiDocs, c.openaiStructured, c.instructor, c.dlaiFunctionsTools, m.ebbelaarAgents],
         quiz: [
           {
+            q: 'Structured output mainly guarantees that the response…',
+            options: ['Is factually correct', 'Matches a defined JSON schema', 'Is shorter', 'Is cheaper'],
+            answer: 1,
+            why: 'Schema-constrained output gives parseable, typed JSON. Correctness still needs evals: valid JSON can hold wrong facts.',
+          },
+          {
             q: 'With tool calling, who actually executes the function?',
+            why: 'The model only proposes a function name and arguments; your code decides whether and how to run it, then returns the result.',
             options: ['The LLM provider', 'Your application code', 'The browser', 'Nobody'],
             answer: 1,
           },
           {
             q: 'For deterministic SQL generation, prefer temperature…',
+            why: 'Low temperature makes sampling near-deterministic, giving consistent SQL and test cases. High temperature adds randomness.',
             options: ['Low (0–0.2)', 'High (1.5)', 'Random', 'It does not matter'],
             answer: 0,
           },
@@ -464,7 +565,14 @@ export const phases: Phase[] = [
         courses: [c.duckdb, c.awesomeLlmApps],
         quiz: [
           {
+            q: 'An LLM-generated SQL test fails to parse. Best handling?',
+            options: ['Ship it anyway', 'Validate, then re-prompt with the error message', 'Delete the mapping row', 'Raise temperature to 2'],
+            answer: 1,
+            why: 'Feeding the validation error back to the model (a repair loop) fixes most malformed outputs automatically.',
+          },
+          {
             q: 'Why validate LLM output with Pydantic before writing SQL files?',
+            why: 'Pydantic catches missing or malformed fields before they become broken SQL files: fail fast, at the boundary.',
             options: ['Catch malformed or missing fields early', 'Make it slower', 'SQL requires Python', 'No reason'],
             answer: 0,
           },
@@ -498,12 +606,20 @@ export const phases: Phase[] = [
         courses: [c.dlaiVectorDb, m.fireshipVectorDb, m.fccVectorEmbeddings, c.pineconeLearn, c.chroma, c.azureAiSearch],
         quiz: [
           {
+            q: "A query contains exact codes like 'ADF-2041'. Which search helps most?",
+            options: ['Pure vector search', 'Keyword (BM25) or hybrid search', 'Random sampling', 'Bigger embeddings'],
+            answer: 1,
+            why: 'Embeddings blur exact tokens like IDs and codes. Keyword search matches them exactly; hybrid gives you both.',
+          },
+          {
             q: 'Hybrid search combines…',
+            why: 'Hybrid search merges vector (meaning) and keyword (exact terms) results, boosting recall over either alone.',
             options: ['Vector + keyword search', 'Two LLMs', 'SQL + Excel', 'CPU + GPU'],
             answer: 0,
           },
           {
             q: 'Metadata filtering is most like…',
+            why: 'Metadata filters narrow candidates by fields like source or date before ranking, just like a WHERE clause.',
             options: ['A SQL WHERE clause', 'A JOIN', 'A trigger', 'A backup'],
             answer: 0,
           },
@@ -527,12 +643,20 @@ export const phases: Phase[] = [
         courses: [m.ibmRag, c.fccRag, m.pixegamiRag, c.dlaiChatData, m.brandonLangchain, m.llmZoomcamp, c.courseraRag, c.llamaIndex],
         quiz: [
           {
+            q: 'Why add overlap between chunks?',
+            options: ['To use more storage', 'So ideas split across a boundary stay retrievable', 'It speeds up embedding', 'Vector DBs require it'],
+            answer: 1,
+            why: 'Overlap keeps sentences that straddle a chunk boundary intact in at least one chunk, so retrieval does not miss them.',
+          },
+          {
             q: 'RAG reduces hallucination mainly by…',
+            why: 'RAG puts relevant source text into the prompt at query time, so answers come from evidence rather than memory.',
             options: ['Giving the model relevant source text at query time', 'Retraining nightly', 'Bigger GPUs', 'Lower token cost'],
             answer: 0,
           },
           {
             q: 'Chunks that are too large tend to…',
+            why: 'Huge chunks mix relevant and irrelevant text, diluting similarity scores and wasting the context window.',
             options: ['Dilute relevance and waste context', 'Always improve answers', 'Crash the vector DB', 'Reduce latency'],
             answer: 0,
           },
@@ -556,12 +680,20 @@ export const phases: Phase[] = [
         courses: [c.dlaiAdvancedRag, c.dlaiAdvancedRetrieval, m.kamradtSplitting, m.jerryLiuRag, c.ragas, c.dlaiAgenticRag],
         quiz: [
           {
+            q: 'Answers are fluent but cite the wrong documents. Fix which stage first?',
+            options: ['Generation prompt', 'Retrieval (chunking, search, re-ranking)', 'UI colours', 'Model temperature'],
+            answer: 1,
+            why: 'If the wrong context is retrieved, the LLM cannot answer correctly. Measure context relevance and improve retrieval first.',
+          },
+          {
             q: 'Groundedness (faithfulness) checks whether…',
+            why: 'Faithfulness checks that every claim in the answer is supported by the retrieved context: the anti-hallucination metric.',
             options: ['The answer is supported by retrieved context', 'The UI is responsive', 'Chunks are short', 'The model is open source'],
             answer: 0,
           },
           {
             q: 'A RAG golden dataset is most like…',
+            why: 'A golden set of questions with expected answers lets you re-run and compare after every change, like regression tests.',
             options: ['Expected results for regression tests', 'A backup', 'A cache', 'A prompt template'],
             answer: 0,
           },
@@ -585,7 +717,14 @@ export const phases: Phase[] = [
         courses: [c.streamlit, c.chroma, m.pixegamiRag, c.ragas],
         quiz: [
           {
+            q: 'Your RAG eval score drops after changing chunk size. What next?',
+            options: ['Ignore it', 'Revert or tune, then re-run the golden set', 'Delete the eval', 'Ship and hope'],
+            answer: 1,
+            why: 'Evals are your regression suite: a drop is a failed test. Tune and re-run until scores recover before shipping.',
+          },
+          {
             q: 'Why show citations in a RAG chatbot?',
+            why: 'Citations let users and reviewers verify each answer against the source, which builds trust in the system.',
             options: ['Users can verify answers against sources', 'It looks nicer', 'It reduces tokens', 'Python requires it'],
             answer: 0,
           },
@@ -619,12 +758,20 @@ export const phases: Phase[] = [
         courses: [c.hfAgents, c.msAgentsBeginners, m.ibmAgents, m.barryZhangAgents, c.anthropicAgents, m.ebbelaarAgents, c.ngAgenticTalk],
         quiz: [
           {
+            q: 'What stops an agent from looping forever?',
+            options: ['Nothing is needed', 'A max-iterations / step limit', 'A higher temperature', 'More tools'],
+            answer: 1,
+            why: 'Agents can get stuck repeating tool calls. A step limit (plus cost caps and timeouts) is a basic production guardrail.',
+          },
+          {
             q: 'Which is the ReAct loop?',
+            why: 'ReAct interleaves Reasoning (think), Acting (call a tool) and Observing (read the result) until the goal is met.',
             options: ['Reason → Act → Observe', 'Read → Archive → Close', 'Request → Approve → Commit', 'Render → Animate → Cache'],
             answer: 0,
           },
           {
             q: "Anthropic's guidance: start with…",
+            why: 'Simple, predictable workflows are easier to test and debug. Add agent autonomy only when the task truly needs it.',
             options: ['The simplest workflow that works', 'A 10-agent swarm', 'Fine-tuning', 'No tools'],
             answer: 0,
           },
@@ -648,12 +795,20 @@ export const phases: Phase[] = [
         courses: [c.ngAgenticAi, c.kaggleAgents, m.harrisonAgents, c.openaiAgentsSdk],
         quiz: [
           {
+            q: "Which pattern fits 'write SQL tests, then critique and fix them'?",
+            options: ['Reflection', 'Caching', 'Fine-tuning', 'Sharding'],
+            answer: 0,
+            why: 'Generating, then critiquing and revising your own output is the reflection pattern, and it measurably improves quality.',
+          },
+          {
             q: 'The reflection pattern means…',
+            why: 'In reflection the model (or a second model) reviews its draft against criteria and produces an improved version.',
             options: ['The agent critiques and revises its own output', 'Mirroring a database', 'Caching responses', 'Dark mode'],
             answer: 0,
           },
           {
             q: 'Planning helps an agent…',
+            why: 'Planning breaks a large goal into ordered sub-tasks before acting, reducing wandering and missed steps.',
             options: ['Decompose a goal into ordered steps', 'Avoid tools', 'Skip evaluation', 'Guess faster'],
             answer: 0,
           },
@@ -677,12 +832,20 @@ export const phases: Phase[] = [
         courses: [c.langchainAcademy, c.dlaiLanggraph, m.fccLanggraph, c.langgraphDocs],
         quiz: [
           {
+            q: 'What does a LangGraph checkpointer give you?',
+            options: ['Faster tokens', 'Saved state to pause, resume and replay runs', 'Free hosting', 'Automatic fine-tuning'],
+            answer: 1,
+            why: 'Checkpoints persist graph state after each step, enabling human-in-the-loop pauses, crash recovery and time travel.',
+          },
+          {
             q: 'In LangGraph, conditional edges…',
+            why: 'A conditional edge is a function that reads the current state and returns which node runs next: the routing logic.',
             options: ['Route to the next node based on state', 'Style the graph', 'Compress state', 'Encrypt tools'],
             answer: 0,
           },
           {
             q: 'Why add a human-in-the-loop interrupt?',
+            why: 'Interrupts pause before risky steps (writes, costly queries) so a human can approve, edit or reject them.',
             options: ['Approve risky actions like writes or costly queries', 'Make it slower', 'Required on all nodes', 'To train the model'],
             answer: 0,
           },
@@ -706,7 +869,14 @@ export const phases: Phase[] = [
         courses: [c.dlaiCrewai, c.msAgentsBeginners, m.langgraphMultiAgent],
         quiz: [
           {
+            q: 'Main downside of adding more agents?',
+            options: ['Fewer features', 'More tokens, latency and failure points', 'Guaranteed lower accuracy', 'There is no downside'],
+            answer: 1,
+            why: 'Every agent adds LLM calls and hand-offs. Use multiple agents only when specialisation clearly beats a single agent.',
+          },
+          {
             q: 'A supervisor agent…',
+            why: 'The supervisor decides which specialist handles each step and collects the results, like a QA lead assigning work.',
             options: ['Routes tasks to specialist agents', 'Stores embeddings', 'Hosts the API', 'Formats markdown'],
             answer: 0,
           },
@@ -730,12 +900,20 @@ export const phases: Phase[] = [
         courses: [c.dlaiMcp, c.hfMcp, m.maheshMcp, c.mcpDocs],
         quiz: [
           {
+            q: 'The three primitives an MCP server exposes are…',
+            options: ['Tools, resources, prompts', 'Tables, views, indexes', 'Models, GPUs, datasets', 'Users, roles, groups'],
+            answer: 0,
+            why: 'MCP servers expose tools (actions), resources (readable data) and prompts (templates) to any compatible client.',
+          },
+          {
             q: 'MCP mainly standardises…',
+            why: 'MCP is a standard protocol, so one tool server works with Claude, Copilot, LangGraph and other clients.',
             options: ['How agents connect to tools and data', 'GPU cooling', 'Model training', 'CSS styling'],
             answer: 0,
           },
           {
             q: 'Safest DB tool to expose to an agent?',
+            why: 'Least privilege: an agent can be manipulated by injected text, so give it only read-only, narrowly scoped access.',
             options: ['Read-only, scoped queries', 'Full admin', 'DROP TABLE', 'Shell access'],
             answer: 0,
           },
@@ -759,7 +937,14 @@ export const phases: Phase[] = [
         courses: [c.langgraphDocs, c.duckdb, c.mcpDocs],
         quiz: [
           {
+            q: 'A useful agent test report should include…',
+            options: ['Only a pass count', 'Pass / fail per test plus the reason for each failure', 'The raw prompt only', 'Token counts only'],
+            answer: 1,
+            why: 'Actionable reports explain why each test failed so engineers can fix root causes. That is the analyst agent’s job.',
+          },
+          {
             q: 'Why run generated SQL through a read-only tool?',
+            why: 'A read-only connection guarantees generated SQL cannot modify or drop data, even if the model makes a mistake.',
             options: ['Prevent destructive or unintended writes', 'Faster queries', 'Better formatting', 'SQL requires it'],
             answer: 0,
           },
@@ -793,12 +978,20 @@ export const phases: Phase[] = [
         courses: [c.dlaiTestingLlmops, c.deepeval, c.hamelEvals, m.lennyEvals, c.dlaiEvalDebug, m.llmZoomcamp],
         quiz: [
           {
+            q: 'Before trusting an LLM judge, you should…',
+            options: ['Use the biggest model', 'Compare its scores with human labels', 'Set temperature to 2', 'Skip the rubric'],
+            answer: 1,
+            why: 'LLM judges have biases. Calibrating against a human-labelled sample shows whether its scores can be trusted.',
+          },
+          {
             q: 'LLM-as-a-judge means…',
+            why: 'An LLM judge grades outputs against a written rubric, scaling evaluation beyond what humans can review.',
             options: ['An LLM scores outputs against criteria', 'A court case', 'Human-only review', 'A Python syntax test'],
             answer: 0,
           },
           {
             q: 'An eval CI gate should…',
+            why: 'A CI gate blocks merges when quality falls below a threshold, catching regressions before users do.',
             options: ['Fail the build when scores drop below thresholds', 'Always pass', 'Run yearly', 'Delete failing tests'],
             answer: 0,
           },
@@ -822,7 +1015,14 @@ export const phases: Phase[] = [
         courses: [c.owaspLlm, m.ibmPromptInjection, c.dlaiQualitySafety, c.langfuse],
         quiz: [
           {
+            q: 'Where should PII be masked in an LLM app?',
+            options: ['Only after the model answers', 'Before data reaches the model, and in logs / traces', 'Never', 'Only in the UI'],
+            answer: 1,
+            why: 'Mask at input so sensitive data never leaves your boundary, and scrub traces and logs: same idea as DWH data masking.',
+          },
+          {
             q: 'Prompt injection is…',
+            why: 'Prompt injection is when untrusted content (user text, web pages, docs) carries instructions that hijack the model.',
             options: ['Untrusted input overriding your instructions', 'A faster prompt', 'A type of fine-tuning', 'SQL indexing'],
             answer: 0,
           },
@@ -846,7 +1046,14 @@ export const phases: Phase[] = [
         courses: [m.fireshipDocker, m.fireshipDockerConcepts, c.nanaDocker, m.fccDocker, c.dockerGetStarted],
         quiz: [
           {
+            q: 'Why install dependencies before copying app code in a Dockerfile?',
+            options: ['Docker requires that order', 'Layer caching skips reinstalling deps when only code changes', 'Smaller images', 'Better security'],
+            answer: 1,
+            why: 'Docker caches layers. If dependencies sit in an earlier layer, code-only changes rebuild in seconds.',
+          },
+          {
             q: 'A Docker image is…',
+            why: 'An image is the immutable template; a container is a running instance created from it.',
             options: ['A read-only template used to create containers', 'A running process', 'A VM', 'A database'],
             answer: 0,
           },
@@ -871,12 +1078,20 @@ export const phases: Phase[] = [
         courses: [c.msGenAiBeginners, c.msLearnGenAi, m.az900, c.azureFoundry, c.azureContainerApps],
         quiz: [
           {
+            q: 'Best place to store secrets for an Azure app?',
+            options: ['App source code', 'Azure Key Vault', 'A public blob container', 'Code comments'],
+            answer: 1,
+            why: 'Key Vault stores secrets centrally with access control and rotation; apps read them via managed identity.',
+          },
+          {
             q: 'Why use managed identity?',
+            why: 'Managed identity lets Azure services authenticate to each other via Entra ID, so there are no keys in code or config to leak.',
             options: ['Services authenticate without secrets in code', 'Faster GPUs', 'Cheaper tokens', 'Nicer UI'],
             answer: 0,
           },
           {
             q: 'To save credit on Container Apps…',
+            why: 'Scale to zero stops replicas when idle, so you pay nothing between requests: key for stretching free credit.',
             options: ['Allow scale to zero', 'Pin 10 replicas', 'Disable logging only', 'Use bigger CPUs'],
             answer: 0,
           },
@@ -910,7 +1125,14 @@ export const phases: Phase[] = [
         courses: [c.databricksFree, c.langgraphDocs, c.azureContainerApps],
         quiz: [
           {
+            q: 'Why put cost limits on an agent in production?',
+            options: ['Azure requires it', 'A loop or a bad input can burn budget fast', 'It improves accuracy', 'It reduces latency'],
+            answer: 1,
+            why: 'Runaway loops or huge inputs can multiply token spend. Per-run budgets and step caps contain the blast radius.',
+          },
+          {
             q: 'Before a demo, what matters most?',
+            why: 'Demos fail on flaky paths. A rehearsed, eval-backed happy path shows reliability, which is what reviewers value.',
             options: ['A reliable, repeatable happy path backed by evals', 'Max number of agents', 'Longest prompt', 'Newest model only'],
             answer: 0,
           },
@@ -934,7 +1156,14 @@ export const phases: Phase[] = [
         courses: [c.deepeval, c.hamelEvals, c.langfuse],
         quiz: [
           {
+            q: "To credibly claim 'the agent is 90% accurate' you need…",
+            options: ['A gut feeling', 'A golden dataset with documented eval results', 'A bigger model', 'More agents'],
+            answer: 1,
+            why: 'Numbers are only credible with a reproducible eval: a labelled dataset, a method and published results.',
+          },
+          {
             q: 'Best capstone headline metric?',
+            why: 'Hiring managers remember business impact: hours saved with measured accuracy beats vanity metrics like lines of code.',
             options: ['Time saved per mapping, with measured accuracy', 'Number of files', 'Lines of code', 'Colours used'],
             answer: 0,
           },
@@ -958,7 +1187,14 @@ export const phases: Phase[] = [
         courses: [c.makeReadme, c.mermaid, c.demoVideo],
         quiz: [
           {
+            q: 'Ideal length for a portfolio demo video?',
+            options: ['30 minutes', 'About 3 minutes', '10 seconds', '1 hour'],
+            answer: 1,
+            why: 'Reviewers skim. Around 3 minutes covers problem → live run → results without losing attention.',
+          },
+          {
             q: 'What should come first in your README?',
+            why: 'Readers decide in seconds. Lead with the problem and a visual demo; licence and dependencies come later.',
             options: ['The problem it solves + a demo GIF', 'The licence', 'Every dependency', 'Commit history'],
             answer: 0,
           },
@@ -993,7 +1229,14 @@ export const phases: Phase[] = [
         courses: [c.huyenPlatform, m.jerryLiuRag, m.barryZhangAgents, c.aieBook, c.sysDesignVideo],
         quiz: [
           {
+            q: 'Which component cuts both cost and latency for repeated questions?',
+            options: ['A semantic cache', 'A bigger model', 'More agents', 'Higher temperature'],
+            answer: 0,
+            why: 'A (semantic) cache returns stored answers for repeated or similar queries without calling the LLM again.',
+          },
+          {
             q: 'When is fine-tuning preferred over RAG?',
+            why: 'Fine-tuning shapes behaviour, tone and format. Fresh or changing facts belong in RAG, which can update instantly.',
             options: [
               'To change style, format or behaviour — not to add fresh facts',
               'To add knowledge that changes daily',
@@ -1022,7 +1265,14 @@ export const phases: Phase[] = [
         courses: [c.dlaiFinetune, m.umarLora, m.shawFinetune, c.unsloth, m.mlabonneCourse, c.hfLlmCourse],
         quiz: [
           {
+            q: 'What should you try before fine-tuning?',
+            options: ['Nothing, fine-tune first', 'Prompting, then RAG, then fine-tuning', 'Buying GPUs', 'Pre-training from scratch'],
+            answer: 1,
+            why: 'Prompting and RAG are cheaper and faster to iterate. Fine-tune only once they hit a measured ceiling.',
+          },
+          {
             q: 'LoRA reduces cost by…',
+            why: 'LoRA freezes the base model and trains small low-rank adapter matrices: a tiny fraction of the parameters.',
             options: ['Training small adapter matrices instead of all weights', 'Deleting layers', 'CPUs only', 'Skipping evaluation'],
             answer: 0,
           },
@@ -1046,7 +1296,14 @@ export const phases: Phase[] = [
         courses: [c.msAppliedSkills, c.hfAgents, c.hfMcp],
         quiz: [
           {
+            q: 'How do credentials help most in a career switch?',
+            options: ['They replace projects', 'They add recruiter signals next to project evidence', 'They guarantee a job', 'They are useless'],
+            answer: 1,
+            why: 'Credentials help you pass keyword filters; projects prove you can build. Use both together.',
+          },
+          {
             q: 'Which credential is free and lab-based on Azure?',
+            why: 'Microsoft Applied Skills are free, scenario-based lab assessments that verify hands-on Azure AI skills.',
             options: ['Microsoft Applied Skills', 'A paid bootcamp', 'None exist', 'Only degrees'],
             answer: 0,
           },
@@ -1070,7 +1327,14 @@ export const phases: Phase[] = [
         courses: [c.interviewVideo, c.techInterviewHandbook, c.huyenPlatform],
         quiz: [
           {
+            q: 'The STAR method structures interview answers as…',
+            options: ['Situation, Task, Action, Result', 'Start, Test, Assert, Repeat', 'Story, Tools, Agents, RAG', 'Skills, Titles, Awards, References'],
+            answer: 0,
+            why: 'STAR keeps behavioural answers concrete: the context, your goal, what you did and the measurable outcome.',
+          },
+          {
             q: "Strongest answer to 'Why AI engineering?'",
+            why: "Specific project stories with impact prove ability; generic answers like 'it pays more' signal weak motivation.",
             options: [
               'A concrete project story showing impact + your data-quality edge',
               "'It pays more'",
@@ -1099,7 +1363,14 @@ export const phases: Phase[] = [
         courses: [c.baraaRoadmap, c.techInterviewHandbook],
         quiz: [
           {
+            q: 'Best way to tailor a résumé to an AI job ad?',
+            options: ['Copy the ad text', 'Mirror its keywords with honest project evidence', 'List every tool ever used', 'Use one generic version'],
+            answer: 1,
+            why: 'ATS filters match keywords, but humans check evidence. Mirror the language and back each claim with a project.',
+          },
+          {
             q: 'Which role title is a natural bridge from QA to AI?',
+            why: 'AI evaluation / quality roles value test design and data validation: your strongest transferable skills.',
             options: ['AI Evaluation / Quality Engineer', 'Frontend animator', 'Network admin', 'Sales rep'],
             answer: 0,
           },

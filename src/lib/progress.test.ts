@@ -4,11 +4,10 @@ import { getModule } from '@/content';
 import type { CourseProgress, ModuleProgress } from '@/db/db';
 import {
   courseCompletion,
-  currentStreak,
   getLessons,
-  longestStreak,
   moduleCompletion,
   readinessScore,
+  streakInfo,
 } from './progress';
 import { engagementScore, sortCourses } from './scoring';
 
@@ -49,7 +48,7 @@ describe('streaks', () => {
       ['2026-10-02', 90],
       ['2026-10-03', 60],
     ]);
-    expect(currentStreak(minutes, '2026-10-05', s)).toBe(2);
+    expect(streakInfo(minutes, '2026-10-05', s).current).toBe(2);
   });
 
   it('breaks on a missed study day', () => {
@@ -57,8 +56,14 @@ describe('streaks', () => {
       ['2026-09-29', 90],
       ['2026-10-01', 90],
     ]);
-    expect(currentStreak(minutes, '2026-10-01', s)).toBe(1);
-    expect(longestStreak(minutes, '2026-10-01', s)).toBe(1);
+    expect(streakInfo(minutes, '2026-10-01', s)).toMatchObject({ current: 1, best: 1, freezes: 0, frozen: [] });
+  });
+
+  it('earns a freeze every 7 study days and spends it on a missed day', () => {
+    // Mon 28 Sep … Sat 3 Oct + Mon 5 Oct = 7 study days (Sun is rest), miss Tue 6 Oct, study Wed 7 Oct.
+    const days = ['2026-09-28', '2026-09-29', '2026-09-30', '2026-10-01', '2026-10-02', '2026-10-03', '2026-10-05', '2026-10-07'];
+    const info = streakInfo(new Map(days.map((d) => [d, 30])), '2026-10-07', s);
+    expect(info).toMatchObject({ current: 8, best: 8, freezes: 0, frozen: ['2026-10-06'] });
   });
 });
 

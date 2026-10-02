@@ -4,7 +4,8 @@ import { CountUp } from '@/components/CountUp';
 import type { Journey } from '@/hooks/useJourney';
 import { cn } from '@/lib/cn';
 import { diffDays, formatShort } from '@/lib/dates';
-import { lastNDays, weekStrip, type DayStatus } from '@/lib/gamification';
+import { lastNDays, type DayStatus } from '@/lib/gamification';
+import { FREEZE_EVERY } from '@/lib/progress';
 import { cardHover, rise } from './motion';
 
 function Tile({ label, children, accent }: { label: string; children: ReactNode; accent: string }) {
@@ -21,22 +22,29 @@ const DOT: Record<DayStatus, string> = {
   done: 'bg-gradient-to-br from-orange-400 to-rose-500 text-white',
   today: 'border-2 border-dashed border-orange-400 text-orange-500',
   missed: 'bg-slate-200 text-slate-400 dark:bg-white/10',
+  frozen: 'bg-cyan-400/20 text-cyan-500',
   rest: 'bg-sky-500/15 text-sky-500',
   future: 'border border-slate-200 text-slate-400 dark:border-white/10',
   na: 'opacity-30 border border-slate-200 dark:border-white/10',
 };
 
 function StreakTile({ j }: { j: Journey }) {
-  const week = weekStrip(j.today, j.schedule, j.minutes);
+  const goalPct = j.weekGoal ? Math.min(1, j.weekMinutes / j.weekGoal) : 0;
   return (
     <Tile label="Streak" accent="bg-orange-500">
       <div className="flex items-center gap-3">
         <span className={cn('text-4xl', j.streak > 0 && 'animate-flicker')} aria-hidden>🔥</span>
         <p className="text-4xl font-extrabold"><CountUp value={j.streak} /></p>
         <p className="text-sm text-slate-500">day{j.streak === 1 ? '' : 's'}<br /><span className="text-xs">best {j.bestStreak}</span></p>
+        <p
+          className="ml-auto rounded-full bg-cyan-400/15 px-2 py-1 text-xs font-semibold text-cyan-600 dark:text-cyan-300"
+          title={`Streak freezes cover a missed study day. You earn one every ${FREEZE_EVERY} study days (max 2).`}
+        >
+          ❄️ {j.freezes}
+        </p>
       </div>
       <div className="mt-4 flex justify-between gap-1">
-        {week.map((d, i) => (
+        {j.week.map((d, i) => (
           <motion.div
             key={d.date}
             initial={{ scale: 0 }}
@@ -45,9 +53,18 @@ function StreakTile({ j }: { j: Journey }) {
             title={`${formatShort(d.date)} · ${d.status}${d.minutes ? ` · ${d.minutes} min` : ''}`}
             className={cn('grid size-8 place-items-center rounded-full text-[11px] font-bold', DOT[d.status])}
           >
-            {d.status === 'rest' ? '☕' : 'MTWTFSS'[i]}
+            {d.status === 'rest' ? '☕' : d.status === 'frozen' ? '❄️' : 'MTWTFSS'[i]}
           </motion.div>
         ))}
+      </div>
+      <div className="mt-3">
+        <div className="flex justify-between text-[11px] text-slate-500">
+          <span>Weekly goal</span>
+          <span>{(j.weekMinutes / 60).toFixed(1)} / {(j.weekGoal / 60).toFixed(1)} h</span>
+        </div>
+        <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-slate-200 dark:bg-white/10">
+          <div className="h-full rounded-full bg-gradient-to-r from-orange-400 to-rose-500 transition-all" style={{ width: `${goalPct * 100}%` }} />
+        </div>
       </div>
     </Tile>
   );

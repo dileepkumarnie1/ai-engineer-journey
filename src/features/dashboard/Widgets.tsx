@@ -58,7 +58,7 @@ export function WeekBars({ j }: { j: Journey }) {
       <div className="mb-4 flex items-baseline justify-between">
         <h2 className="text-lg font-bold">📊 This week</h2>
         <p className="text-sm text-slate-500">
-          <span className="font-bold text-slate-900 dark:text-white">{(weekTotal / 60).toFixed(1)} h</span> / {((target * 6) / 60).toFixed(1)} h
+          <span className="font-bold text-slate-900 dark:text-white">{(weekTotal / 60).toFixed(1)} h</span> / {(j.weekGoal / 60).toFixed(1)} h
         </p>
       </div>
       <div className="relative flex h-40 items-end gap-3">
@@ -97,7 +97,7 @@ export function Achievements({ input }: { input: BadgeInput }) {
         <h2 className="text-lg font-bold">🏅 Achievements</h2>
         <p className="text-sm text-slate-500"><span className="font-bold text-slate-900 dark:text-white">{earned}</span> / {BADGES.length} unlocked</p>
       </div>
-      <div className="grid grid-cols-5 gap-3">
+      <div className="grid grid-cols-4 gap-3 sm:grid-cols-6">
         {BADGES.map((b, i) => {
           const got = b.earned(input);
           return (
